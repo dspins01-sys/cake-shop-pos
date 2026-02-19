@@ -2,59 +2,6 @@
 
 @section('title', isset($category) ? $category->name : 'Our Products')
 
-@push('styles')
-<style>
-.category-badge {
-    background: #f8f9fa;
-    padding: 8px 20px;
-    border-radius: 25px;
-    color: #6c757d;
-    text-decoration: none;
-    transition: all 0.3s;
-    display: inline-block;
-    margin: 5px;
-}
-.category-badge:hover {
-    background: #e9ecef;
-    color: #495057;
-    transform: translateY(-2px);
-}
-.category-badge.active {
-    background: #ff6b6b;
-    color: white;
-}
-.product-card {
-    transition: transform 0.3s, box-shadow 0.3s;
-    border: none;
-    border-radius: 15px;
-    overflow: hidden;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-}
-.product-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-}
-.product-img {
-    height: 200px;
-    overflow: hidden;
-}
-.product-img img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.5s;
-}
-.product-card:hover .product-img img {
-    transform: scale(1.05);
-}
-.price {
-    color: #ff6b6b;
-    font-weight: bold;
-    font-size: 1.25rem;
-}
-</style>
-@endpush
-
 @section('content')
 <div class="container py-4">
     <!-- Header -->
@@ -98,27 +45,41 @@
                 <div class="card product-card h-100">
                     <div class="position-relative">
                         @if($product->stock <= 0)
-                            <div class="position-absolute top-0 start-0 bg-danger text-white px-3 py-1 m-2 rounded z-1">
+                            <div class="position-absolute top-0 start-0 bg-danger text-white px-3 py-1 m-2 rounded">
                                 Out of Stock
                             </div>
                         @elseif($product->stock < 5)
-                            <div class="position-absolute top-0 start-0 bg-warning text-dark px-3 py-1 m-2 rounded z-1">
+                            <div class="position-absolute top-0 start-0 bg-warning text-dark px-3 py-1 m-2 rounded">
                                 Low Stock
                             </div>
                         @endif
                         
+                        <!-- Placeholder image -->
                         <!-- Product Image -->
-                        <a href="{{ route('products.show', $product->slug) }}" class="d-block product-img">
-                            @if($product->image)
-                                <img src="{{ asset('storage/' . $product->image) }}" 
-                                     alt="{{ $product->name }}"
-                                     onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'; this.onerror=null;">
-                            @else
-                                <div class="bg-light d-flex align-items-center justify-content-center h-100">
-                                    <i class="fas fa-cake-candles fa-4x text-secondary"></i>
-                                </div>
-                            @endif
-                        </a>
+<div class="position-relative">
+    @if($product->stock <= 0)
+        <div class="position-absolute top-0 start-0 bg-danger text-white px-3 py-1 m-2 rounded">
+            Out of Stock
+        </div>
+    @elseif($product->stock < 5)
+        <div class="position-absolute top-0 start-0 bg-warning text-dark px-3 py-1 m-2 rounded">
+            Low Stock
+        </div>
+    @endif
+    
+    <!-- GANTI BAGIAN INI -->
+    <div class="bg-light product-img d-flex align-items-center justify-content-center" style="height: 200px;">
+        @if($product->image)
+            <img src="{{ asset('storage/' . $product->image) }}" 
+                 alt="{{ $product->name }}"
+                 style="width: 100%; height: 100%; object-fit: cover;"
+                 class="img-fluid"
+                 onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'; this.onerror=null;">
+        @else
+            <i class="fas fa-cake-candles fa-4x text-secondary"></i>
+        @endif
+    </div>
+</div>
                     </div>
                     
                     <div class="card-body">
@@ -134,7 +95,7 @@
                         </p>
                         
                         <div class="d-flex justify-content-between align-items-center">
-                            <span class="price">
+                            <span class="price text-danger fw-bold fs-5">
                                 Rp {{ number_format($product->price, 0, ',', '.') }}
                             </span>
                             <a href="{{ route('products.show', $product->slug) }}" 
@@ -160,3 +121,35 @@
     </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+.category-badge {
+    background: #f8f9fa;
+    padding: 8px 20px;
+    border-radius: 25px;
+    color: #6c757d;
+    text-decoration: none;
+    transition: all 0.3s;
+}
+.category-badge:hover {
+    background: #e9ecef;
+    color: #495057;
+}
+.category-badge.active {
+    background: #ff6b6b;
+    color: white;
+}
+.product-card {
+    transition: transform 0.3s, box-shadow 0.3s;
+    border: none;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+</style>
+@endpush
