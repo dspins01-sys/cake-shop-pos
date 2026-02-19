@@ -55,9 +55,31 @@
                         @endif
                         
                         <!-- Placeholder image -->
-                        <div class="bg-light product-img d-flex align-items-center justify-content-center" style="height: 200px;">
-                            <i class="fas fa-cake-candles fa-4x text-secondary"></i>
-                        </div>
+                        <!-- Product Image -->
+<div class="position-relative">
+    @if($product->stock <= 0)
+        <div class="position-absolute top-0 start-0 bg-danger text-white px-3 py-1 m-2 rounded">
+            Out of Stock
+        </div>
+    @elseif($product->stock < 5)
+        <div class="position-absolute top-0 start-0 bg-warning text-dark px-3 py-1 m-2 rounded">
+            Low Stock
+        </div>
+    @endif
+    
+    <!-- GANTI BAGIAN INI -->
+    <div class="bg-light product-img d-flex align-items-center justify-content-center" style="height: 200px;">
+        @if($product->image)
+            <img src="{{ asset('storage/' . $product->image) }}" 
+                 alt="{{ $product->name }}"
+                 style="width: 100%; height: 100%; object-fit: cover;"
+                 class="img-fluid"
+                 onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'; this.onerror=null;">
+        @else
+            <i class="fas fa-cake-candles fa-4x text-secondary"></i>
+        @endif
+    </div>
+</div>
                     </div>
                     
                     <div class="card-body">

@@ -60,23 +60,51 @@
             </div>
 
             <!-- Quantity and Add to Cart -->
-            <div class="d-flex gap-3 align-items-center mb-4">
-                <div class="input-group" style="width: 150px;">
-                    <button class="btn btn-outline-secondary" type="button" onclick="decreaseQty()">-</button>
-                    <input type="number" class="form-control text-center" id="quantity" value="1" min="1" max="{{ $product->stock }}" readonly>
-                    <button class="btn btn-outline-secondary" type="button" onclick="increaseQty()">+</button>
-                </div>
+            <!-- Quantity and Add to Cart -->
+<div class="d-flex gap-3 align-items-center mb-4">
+    <div class="input-group" style="width: 150px;">
+        <button class="btn btn-outline-secondary" type="button" onclick="decreaseQty()">-</button>
+        <input type="number" class="form-control text-center" id="quantity" value="1" min="1" max="{{ $product->stock }}" readonly>
+        <button class="btn btn-outline-secondary" type="button" onclick="increaseQty()">+</button>
+    </div>
 
-                @if($product->stock > 0)
-                    <button class="btn btn-primary flex-grow-1" onclick="addToCart()">
-                        <i class="fas fa-cart-plus"></i> Add to Cart
-                    </button>
-                @else
-                    <button class="btn btn-secondary flex-grow-1" disabled>
-                        <i class="fas fa-cart-plus"></i> Out of Stock
-                    </button>
-                @endif
-            </div>
+    @if($product->stock > 0)
+        <form action="{{ route('cart.add', $product) }}" method="POST" class="flex-grow-1">
+            @csrf
+            <input type="hidden" name="quantity" id="cart-quantity" value="1">
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="fas fa-cart-plus"></i> Add to Cart
+            </button>
+        </form>
+    @else
+        <button class="btn btn-secondary flex-grow-1" disabled>
+            <i class="fas fa-cart-plus"></i> Out of Stock
+        </button>
+    @endif
+</div>
+
+@push('scripts')
+<script>
+function increaseQty() {
+    let qty = document.getElementById('quantity');
+    let max = {{ $product->stock }};
+    let newValue = parseInt(qty.value) + 1;
+    if (newValue <= max) {
+        qty.value = newValue;
+        document.getElementById('cart-quantity').value = newValue;
+    }
+}
+
+function decreaseQty() {
+    let qty = document.getElementById('quantity');
+    let newValue = parseInt(qty.value) - 1;
+    if (newValue >= 1) {
+        qty.value = newValue;
+        document.getElementById('cart-quantity').value = newValue;
+    }
+}
+</script>
+@endpush
 
             <!-- Product Meta -->
             <div class="border-top pt-3">

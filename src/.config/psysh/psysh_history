@@ -1,0 +1,7 @@
+App\Models\User::create([
+    'name' => 'Admin',
+    'email' => 'admin@cake.com',
+    'password' => bcrypt('password123'),
+    'role' => 'admin'
+]);
+exit
