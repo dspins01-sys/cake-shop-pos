@@ -1,10 +1,21 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProductController;  // <-- TAMBAHIN INI
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
+// Route::get('/', function () {
+//     return view('welcome');
+// });
+
+// GANTI JADI INI:
+Route::get('/', [ProductController::class, 'index'])->name('home');
+Route::get('/category/{category:slug}', [ProductController::class, 'category'])->name('products.category');
+Route::get('/product/{product:slug}', [ProductController::class, 'show'])->name('products.show');
+
+// Routes admin
+Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () {
+    Route::resource('products', App\Http\Controllers\Admin\ProductController::class);
 });
 
 Route::get('/dashboard', function () {
