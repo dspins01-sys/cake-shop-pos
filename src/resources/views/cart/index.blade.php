@@ -35,40 +35,51 @@
                 <div class="card mb-4">
                     <div class="card-body">
                         @foreach($cart as $id => $item)
-                            <div class="row mb-3 pb-3 border-bottom align-items-center">
-                                <div class="col-md-2">
-                                    <div class="bg-light rounded p-2 text-center">
-                                        <i class="fas fa-cake-candles fa-2x text-secondary"></i>
+                        <div class="row mb-3 pb-3 border-bottom align-items-center">
+                            <div class="col-md-2">
+                                <!-- GANTI BAGIAN INI DENGAN GAMBAR -->
+                                <a href="{{ route('products.show', $item['slug'] ?? '') }}" class="d-block">
+                                    <div class="bg-light rounded p-2 text-center" style="height: 80px; width: 80px; overflow: hidden;">
+                                        @if(isset($item['image']) && $item['image'])
+                                            <img src="{{ asset('storage/' . $item['image']) }}" 
+                                                alt="{{ $item['name'] }}"
+                                                style="width: 100%; height: 100%; object-fit: cover;"
+                                                class="img-fluid rounded"
+                                                onerror="this.src='https://via.placeholder.com/80x80?text=No+Image'; this.onerror=null;">
+                                        @else
+                                            <i class="fas fa-cake-candles fa-2x text-secondary"></i>
+                                        @endif
                                     </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <h5>{{ $item['name'] }}</h5>
-                                    <p class="text-muted small">Stock: {{ $item['stock'] }}</p>
-                                </div>
-                                <div class="col-md-2">
-                                    <span class="price">Rp {{ number_format($item['price'], 0, ',', '.') }}</span>
-                                </div>
-                                <div class="col-md-2">
-                                    <form action="{{ route('cart.update', $id) }}" method="POST" class="d-flex">
-                                        @csrf
-                                        @method('PUT')
-                                        <input type="number" name="quantity" value="{{ $item['quantity'] }}" 
-                                               min="0" max="{{ $item['stock'] }}" class="form-control form-control-sm" 
-                                               style="width: 80px;" onchange="this.form.submit()">
-                                    </form>
-                                </div>
-                                <div class="col-md-2 text-end">
-                                    <span class="fw-bold">Rp {{ number_format($item['price'] * $item['quantity'], 0, ',', '.') }}</span>
-                                    <form action="{{ route('cart.remove', $id) }}" method="POST" class="d-inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-link text-danger" 
-                                                onclick="return confirm('Remove this item?')">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
-                                </div>
+                                </a>
                             </div>
+                            <div class="col-md-4">
+                                <h5 class="mb-1">{{ $item['name'] }}</h5>
+                                <p class="text-muted small mb-0">Stock: {{ $item['stock'] ?? 'N/A' }}</p>
+                            </div>
+                            <div class="col-md-2">
+                                <span class="price">Rp {{ number_format($item['price'], 0, ',', '.') }}</span>
+                            </div>
+                            <div class="col-md-2">
+                                <form action="{{ route('cart.update', $id) }}" method="POST" class="d-flex">
+                                    @csrf
+                                    @method('PUT')
+                                    <input type="number" name="quantity" value="{{ $item['quantity'] }}" 
+                                        min="0" max="{{ $item['stock'] ?? 999 }}" class="form-control form-control-sm" 
+                                        style="width: 80px;" onchange="this.form.submit()">
+                                </form>
+                            </div>
+                            <div class="col-md-2 text-end">
+                                <span class="fw-bold">Rp {{ number_format($item['price'] * $item['quantity'], 0, ',', '.') }}</span>
+                                <form action="{{ route('cart.remove', $id) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-link text-danger" 
+                                            onclick="return confirm('Remove this item?')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
                         @endforeach
 
                         <div class="d-flex justify-content-between mt-3">
