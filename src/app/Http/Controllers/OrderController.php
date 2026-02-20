@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use Illuminate\Http\Request;
+use App\Models\Product;
 
 class OrderController extends Controller
 {
@@ -101,18 +102,7 @@ public function uploadProof(Request $request, Order $order)
     /**
      * Confirm payment (admin only)
      */
-    public function confirmPayment(Order $order)
-    {
-        $order->update([
-            'payment_status' => 'paid',
-            'status' => 'processing',
-            'paid_at' => now()
-        ]);
-
-        return redirect()->route('admin.orders.show', $order)
-            ->with('success', 'Payment confirmed! Order is now processing.');
-    }
-
+   
     /**
      * Mark order as completed (admin only)
      */
@@ -120,15 +110,31 @@ public function uploadProof(Request $request, Order $order)
     /**
      * Cancel order (admin only)
      */
-    public function cancel(Order $order)
-    {
-        $order->update([
-            'status' => 'cancelled'
-        ]);
-
-        return redirect()->route('admin.orders.show', $order)
-            ->with('success', 'Order cancelled.');
+   /**
+ * Cancel order (admin only) - KEMBALIKAN STOK
+ */
+public function cancel(Order $order)
+{
+    // Kembalikan stok (kalo statusnya paid/processing)
+    if (in_array($order->payment_status, ['paid', 'waiting_confirmation'])) {
+        foreach ($order->items as $item) {
+            $product = Product::find($item->product_id);
+            if ($product) {
+                $product->update([
+                    'stock' => $product->stock + $item->quantity
+                ]);
+                \Log::info("Stok dikembalikan: {$product->name} +{$item->quantity}");
+            }
+        }
     }
+
+    $order->update([
+        'status' => 'cancelled'
+    ]);
+
+    return redirect()->route('admin.orders.show', $order)
+        ->with('success', 'Order cancelled. Stok telah dikembalikan.');
+}
     /**
  * Process order (admin only)
  */
@@ -157,7 +163,52 @@ public function processOrder(Order $order)
         ->with('success', 'Order completed successfully!');
 }
 
+/**
+ * Confirm payment (admin only)
+ */
+/**
+ * Confirm payment (admin only)
+ */
+public function confirmPayment(Order $order)
+{
+    // ============ VALIDASI STOK DULU ============
+    foreach ($order->items as $item) {
+        $product = Product::find($item->product_id);
+        
+        // Cek apakah produk masih ada
+        if (!$product) {
+            return back()->with('error', "Produk {$item->product_name} tidak ditemukan di database!");
+        }
+        
+        // Cek apakah stok cukup
+        if ($product->stock < $item->quantity) {
+            return back()->with('error', 
+                "Stok {$product->name} tidak cukup! " .
+                "Dipesan: {$item->quantity}, " .
+                "Sisa stok: {$product->stock}"
+            );
+        }
+    }
 
+    // ============ KALO SEMUA AMAN, BARU KURANGI STOK ============
+    foreach ($order->items as $item) {
+        $product = Product::find($item->product_id);
+        $product->decrement('stock', $item->quantity);
+        
+        // Optional: catat log
+        \Log::info("Stok berkurang: {$product->name} -{$item->quantity} (Sisa: {$product->stock})");
+    }
+
+    // Update status order
+    $order->update([
+        'payment_status' => 'paid',
+        'status' => 'processing',
+        'paid_at' => now()
+    ]);
+
+    return redirect()->route('admin.orders.show', $order)
+        ->with('success', 'Payment confirmed! Stok telah diperbarui.');
+}
 /**
  * Mark order as completed (admin only)
  */

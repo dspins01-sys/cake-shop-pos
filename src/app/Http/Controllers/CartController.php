@@ -72,17 +72,31 @@ class CartController extends Controller
      * Show checkout page
      */
     public function checkout()
-    {
-        $cart = CartHelper::getCart();
-        
-        if (empty($cart)) {
-            return redirect()->route('cart.index')->with('error', 'Your cart is empty!');
-        }
-        
-        $total = CartHelper::getTotal();
-        
-        return view('cart.checkout', compact('cart', 'total'));
+{
+    $cart = CartHelper::getCart();
+    
+    if (empty($cart)) {
+        return redirect()->route('cart.index')->with('error', 'Your cart is empty!');
     }
+    
+    // VALIDASI STOK SEBELUM CHECKOUT
+    $hasError = false;
+    foreach ($cart as $id => $item) {
+        $product = Product::find($id);
+        if (!$product || $product->stock < $item['quantity']) {
+            CartHelper::removeFromCart($id);
+            $hasError = true;
+        }
+    }
+    
+    if ($hasError) {
+        return redirect()->route('cart.index')
+            ->with('warning', 'Beberapa item dihapus karena stok tidak cukup.');
+    }
+    
+    $total = CartHelper::getTotal();
+    return view('cart.checkout', compact('cart', 'total'));
+}
     /**
  * Process checkout and create order
  */
@@ -100,7 +114,17 @@ public function process(Request $request)
     ]);
 
     // Ambil cart dari session
-    $cart = CartHelper::getCart();
+     $cart = CartHelper::getCart();
+    
+    // VALIDASI STOK FINAL SEBELUM BUAT ORDER
+    foreach ($cart as $id => $item) {
+        $product = Product::find($id);
+        if (!$product || $product->stock < $item['quantity']) {
+            return back()->with('error', 
+                "Stok {$item['name']} berubah! Tersedia: " . ($product->stock ?? 0)
+            )->withInput();
+        }
+    }
     
     if (empty($cart)) {
         return redirect()->route('cart.index')
