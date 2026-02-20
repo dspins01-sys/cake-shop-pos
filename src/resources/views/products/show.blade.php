@@ -18,13 +18,18 @@
     </nav>
 
     <div class="row g-5">
-        <!-- Product Image -->
+        <!-- Product Image - FIXED: object-fit cover untuk gambar full -->
         <div class="col-md-6">
-            <div class="bg-light rounded-4 p-5 text-center" style="min-height: 400px; display: flex; align-items: center; justify-content: center;">
+            <div class="bg-light rounded-4 p-0" style="height: 450px; overflow: hidden; position: relative;">
                 @if($product->image)
-                    <img src="{{ asset('storage/'.$product->image) }}" alt="{{ $product->name }}" class="img-fluid rounded-3" style="width: 100%; height: 100%; object-fit: cover;">
+                    <img src="{{ asset('storage/'.$product->image) }}" 
+                         alt="{{ $product->name }}" 
+                         class="img-fluid w-100 h-100"
+                         style="object-fit: cover; object-position: center;">
                 @else
-                    <i class="fas fa-cake-candles fa-6x text-secondary"></i>
+                    <div class="d-flex align-items-center justify-content-center h-100">
+                        <i class="fas fa-cake-candles fa-6x text-secondary"></i>
+                    </div>
                 @endif
             </div>
         </div>
@@ -60,51 +65,27 @@
             </div>
 
             <!-- Quantity and Add to Cart -->
-            <!-- Quantity and Add to Cart -->
-<div class="d-flex gap-3 align-items-center mb-4">
-    <div class="input-group" style="width: 150px;">
-        <button class="btn btn-outline-secondary" type="button" onclick="decreaseQty()">-</button>
-        <input type="number" class="form-control text-center" id="quantity" value="1" min="1" max="{{ $product->stock }}" readonly>
-        <button class="btn btn-outline-secondary" type="button" onclick="increaseQty()">+</button>
-    </div>
+            <div class="d-flex gap-3 align-items-center mb-4">
+                <div class="input-group" style="width: 150px;">
+                    <button class="btn btn-outline-secondary" type="button" onclick="decreaseQty()">-</button>
+                    <input type="number" class="form-control text-center" id="quantity" value="1" min="1" max="{{ $product->stock }}" readonly>
+                    <button class="btn btn-outline-secondary" type="button" onclick="increaseQty()">+</button>
+                </div>
 
-    @if($product->stock > 0)
-        <form action="{{ route('cart.add', $product) }}" method="POST" class="flex-grow-1">
-            @csrf
-            <input type="hidden" name="quantity" id="cart-quantity" value="1">
-            <button type="submit" class="btn btn-primary w-100">
-                <i class="fas fa-cart-plus"></i> Add to Cart
-            </button>
-        </form>
-    @else
-        <button class="btn btn-secondary flex-grow-1" disabled>
-            <i class="fas fa-cart-plus"></i> Out of Stock
-        </button>
-    @endif
-</div>
-
-@push('scripts')
-<script>
-function increaseQty() {
-    let qty = document.getElementById('quantity');
-    let max = {{ $product->stock }};
-    let newValue = parseInt(qty.value) + 1;
-    if (newValue <= max) {
-        qty.value = newValue;
-        document.getElementById('cart-quantity').value = newValue;
-    }
-}
-
-function decreaseQty() {
-    let qty = document.getElementById('quantity');
-    let newValue = parseInt(qty.value) - 1;
-    if (newValue >= 1) {
-        qty.value = newValue;
-        document.getElementById('cart-quantity').value = newValue;
-    }
-}
-</script>
-@endpush
+                @if($product->stock > 0)
+                    <form action="{{ route('cart.add', $product) }}" method="POST" class="flex-grow-1">
+                        @csrf
+                        <input type="hidden" name="quantity" id="cart-quantity" value="1">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-cart-plus"></i> Add to Cart
+                        </button>
+                    </form>
+                @else
+                    <button class="btn btn-secondary flex-grow-1" disabled>
+                        <i class="fas fa-cart-plus"></i> Out of Stock
+                    </button>
+                @endif
+            </div>
 
             <!-- Product Meta -->
             <div class="border-top pt-3">
@@ -125,11 +106,16 @@ function decreaseQty() {
                 @foreach($relatedProducts as $related)
                     <div class="col-md-3">
                         <div class="card product-card h-100">
-                            <div class="bg-light p-3 text-center" style="height: 150px; display: flex; align-items: center; justify-content: center;">
+                            <div class="bg-light" style="height: 180px; overflow: hidden;">
                                 @if($related->image)
-                                    <img src="{{ asset('storage/'.$related->image) }}" alt="{{ $related->name }}" style="max-height: 120px; max-width: 100%;">
+                                    <img src="{{ asset('storage/'.$related->image) }}" 
+                                         alt="{{ $related->name }}" 
+                                         class="w-100 h-100"
+                                         style="object-fit: cover;">
                                 @else
-                                    <i class="fas fa-cake-candles fa-3x text-secondary"></i>
+                                    <div class="d-flex align-items-center justify-content-center h-100">
+                                        <i class="fas fa-cake-candles fa-3x text-secondary"></i>
+                                    </div>
                                 @endif
                             </div>
                             <div class="card-body">
@@ -153,24 +139,23 @@ function decreaseQty() {
 <script>
 function increaseQty() {
     let qty = document.getElementById('quantity');
+    let cartQty = document.getElementById('cart-quantity');
     let max = {{ $product->stock }};
     let newValue = parseInt(qty.value) + 1;
     if (newValue <= max) {
         qty.value = newValue;
+        if(cartQty) cartQty.value = newValue;
     }
 }
 
 function decreaseQty() {
     let qty = document.getElementById('quantity');
+    let cartQty = document.getElementById('cart-quantity');
     let newValue = parseInt(qty.value) - 1;
     if (newValue >= 1) {
         qty.value = newValue;
+        if(cartQty) cartQty.value = newValue;
     }
-}
-
-function addToCart() {
-    let qty = document.getElementById('quantity').value;
-    alert('Added ' + qty + ' item(s) to cart! (Cart feature coming soon)');
 }
 </script>
 @endpush
@@ -183,10 +168,18 @@ function addToCart() {
     border-radius: 15px;
     overflow: hidden;
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    height: 100%;
 }
 .product-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+.product-card:hover img {
+    transform: scale(1.05);
+    transition: transform 0.5s;
+}
+.product-card img {
+    transition: transform 0.5s;
 }
 .input-group .btn {
     border: 1px solid #ced4da;
