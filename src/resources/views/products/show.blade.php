@@ -22,7 +22,7 @@
         <div class="col-md-6">
             <div class="bg-light rounded-4 p-5 text-center" style="min-height: 400px; display: flex; align-items: center; justify-content: center;">
                 @if($product->image)
-                    <img src="{{ asset('storage/'.$product->image) }}" alt="{{ $product->name }}" class="img-fluid rounded-3" style="max-height: 350px;">
+                    <img src="{{ asset('storage/'.$product->image) }}" alt="{{ $product->name }}" class="img-fluid rounded-3" style="width: 100%; height: 100%; object-fit: cover;">
                 @else
                     <i class="fas fa-cake-candles fa-6x text-secondary"></i>
                 @endif
