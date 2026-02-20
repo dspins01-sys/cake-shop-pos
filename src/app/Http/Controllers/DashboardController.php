@@ -11,6 +11,11 @@ class DashboardController extends Controller
 {
     public function index()
     {
+        // Cek apakah user adalah admin
+        if (auth()->user()->role !== 'admin') {
+            abort(403, 'Unauthorized access');
+        }
+
         $totalProducts = Product::count();
         $totalCategories = Category::count();
         $totalOrders = Order::count();
