@@ -25,9 +25,41 @@
         <div class="mt-2">
             {!! nl2br(e(session('warning'))) !!}
         </div>
+        
+        @if(session('stock_issues'))
+            <div class="mt-3">
+                <button class="btn btn-sm btn-warning" onclick="fixStockIssues()">
+                    <i class="fas fa-magic me-1"></i> Sesuaikan Otomatis
+                </button>
+                <small class="text-muted ms-2">(Quantity akan disesuaikan dengan stok tersedia)</small>
+            </div>
+        @endif
+        
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 @endif
+
+@push('scripts')
+<script>
+function fixStockIssues() {
+    const issues = @json(session('stock_issues', []));
+    
+    issues.forEach(issue => {
+        if (issue.id && issue.available) {
+            // Cari form input untuk produk ini
+            const form = document.querySelector(`form[action*="cart/update/${issue.id}"]`);
+            if (form) {
+                const input = form.querySelector('input[name="quantity"]');
+                if (input) {
+                    input.value = issue.available;
+                    form.submit();
+                }
+            }
+        }
+    });
+}
+</script>
+@endpush
 
     @if(empty($cart))
         <div class="text-center py-5">

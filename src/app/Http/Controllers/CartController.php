@@ -74,6 +74,9 @@ class CartController extends Controller
     /**
  * Show checkout page
  */
+/**
+ * Show checkout page
+ */
 public function checkout()
 {
     $cart = CartHelper::getCart();
@@ -83,34 +86,45 @@ public function checkout()
     }
     
     // VALIDASI STOK SEBELUM CHECKOUT
-    $removedItems = [];
-    $hasError = false;
+    $stockIssues = [];
+    $cartUpdated = false;
     
     foreach ($cart as $id => $item) {
         $product = Product::find($id);
+        
         if (!$product) {
-            // Produk sudah tidak ada
+            // Produk sudah tidak ada - hapus
             CartHelper::removeFromCart($id);
-            $removedItems[] = $item['name'];
-            $hasError = true;
+            $stockIssues[] = "{$item['name']} (produk tidak tersedia)";
+            $cartUpdated = true;
         } 
         elseif ($product->stock < $item['quantity']) {
-            // Stok tidak cukup
-            CartHelper::removeFromCart($id);
-            $removedItems[] = "{$item['name']} (pesan {$item['quantity']}, stok {$product->stock})";
-            $hasError = true;
+            // Stok tidak cukup - catat issue tapi jangan hapus dulu
+            $stockIssues[] = [
+                'id' => $id,
+                'name' => $item['name'],
+                'requested' => $item['quantity'],
+                'available' => $product->stock,
+                'max' => $product->stock
+            ];
         }
     }
     
-    if ($hasError) {
-        $message = 'Beberapa item dihapus dari cart:';
-        foreach ($removedItems as $item) {
-            $message .= " • {$item}";
+    // Kalo ada issue stok, redirect ke cart dengan pesan
+    if (!empty($stockIssues)) {
+        $message = 'Beberapa item melebihi stok tersedia:';
+        foreach ($stockIssues as $issue) {
+            if (is_array($issue)) {
+                $message .= " • {$issue['name']}: kamu minta {$issue['requested']}, stok hanya {$issue['available']}";
+            } else {
+                $message .= " • {$issue}";
+            }
         }
-        $message .= ' Silakan cek kembali cart Anda.';
+        $message .= ' Silakan sesuaikan jumlah pesanan.';
         
         return redirect()->route('cart.index')
-            ->with('warning', $message);
+            ->with('warning', $message)
+            ->with('stock_issues', $stockIssues);
     }
     
     $total = CartHelper::getTotal();
