@@ -77,6 +77,11 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('register') }}">Register</a>
                         </li>
+                        <li class="nav-item">
+    <a class="nav-link" href="{{ route('order.track.form') }}">
+        <i class="fas fa-search"></i> Track Order
+    </a>
+</li>
                     @endauth
                 </ul>
             </div>
