@@ -7,21 +7,22 @@ use Illuminate\Database\Eloquent\Model;
 class Order extends Model
 {
     protected $fillable = [
-        'order_number',
-        'customer_name',
-        'customer_email', 
-        'customer_phone',
-        'address',
-        'total',
-        'status',
-        'payment_method',
-        'payment_status',
-        'payment_proof',
-        'paid_at',
-        'notes',
-        'admin_notes',
-        'user_id'
-    ];
+    'order_number',
+    'tracking_code', // <-- PASTIKAN INI ADA
+    'customer_name',
+    'customer_email',
+    'customer_phone',
+    'address',
+    'total',
+    'status',
+    'payment_method',
+    'payment_status',
+    'payment_proof',
+    'paid_at',
+    'notes',
+    'admin_notes',
+    'user_id'
+];
 
     protected $casts = [
         'paid_at' => 'datetime',
