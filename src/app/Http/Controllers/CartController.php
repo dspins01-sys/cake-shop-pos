@@ -71,7 +71,10 @@ class CartController extends Controller
     /**
      * Show checkout page
      */
-    public function checkout()
+    /**
+ * Show checkout page
+ */
+public function checkout()
 {
     $cart = CartHelper::getCart();
     
@@ -80,18 +83,34 @@ class CartController extends Controller
     }
     
     // VALIDASI STOK SEBELUM CHECKOUT
+    $removedItems = [];
     $hasError = false;
+    
     foreach ($cart as $id => $item) {
         $product = Product::find($id);
-        if (!$product || $product->stock < $item['quantity']) {
+        if (!$product) {
+            // Produk sudah tidak ada
             CartHelper::removeFromCart($id);
+            $removedItems[] = $item['name'];
+            $hasError = true;
+        } 
+        elseif ($product->stock < $item['quantity']) {
+            // Stok tidak cukup
+            CartHelper::removeFromCart($id);
+            $removedItems[] = "{$item['name']} (pesan {$item['quantity']}, stok {$product->stock})";
             $hasError = true;
         }
     }
     
     if ($hasError) {
+        $message = 'Beberapa item dihapus dari cart:';
+        foreach ($removedItems as $item) {
+            $message .= " • {$item}";
+        }
+        $message .= ' Silakan cek kembali cart Anda.';
+        
         return redirect()->route('cart.index')
-            ->with('warning', 'Beberapa item dihapus karena stok tidak cukup.');
+            ->with('warning', $message);
     }
     
     $total = CartHelper::getTotal();

@@ -19,6 +19,15 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     @endif
+    @if(session('warning'))
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <strong><i class="fas fa-exclamation-triangle me-2"></i> Perhatian!</strong>
+        <div class="mt-2">
+            {!! nl2br(e(session('warning'))) !!}
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+@endif
 
     @if(empty($cart))
         <div class="text-center py-5">
