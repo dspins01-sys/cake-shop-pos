@@ -13,7 +13,7 @@
         </div>
     @endif
 
-   <form method="POST" action="{{ url('/cart/checkout/process') }}" enctype="multipart/form-data">
+    <form method="POST" action="{{ route('checkout.process') }}" enctype="multipart/form-data">
         @csrf
         
         <div class="row">
