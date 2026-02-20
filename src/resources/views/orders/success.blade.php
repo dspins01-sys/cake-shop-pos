@@ -93,26 +93,40 @@
             </div>
 
             <div class="card shadow-sm border-0 mb-4">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0">
-                        <i class="fas fa-cloud-upload-alt me-2 text-primary"></i>
-                        Upload Payment Proof
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <form action="#" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        <div class="mb-3">
-                            <label class="form-label">Transfer Receipt</label>
-                            <input type="file" class="form-control" name="payment_proof" accept="image/*,.pdf" required>
-                            <small class="text-muted">Max file size: 2MB. Allowed: JPG, PNG, PDF</small>
-                        </div>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-upload me-2"></i>Upload Proof
-                        </button>
-                    </form>
-                </div>
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0">
+            <i class="fas fa-cloud-upload-alt me-2 text-primary"></i>
+            Upload Payment Proof
+        </h5>
+    </div>
+    <div class="card-body">
+        @if($order->payment_proof)
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle me-2"></i>
+                Proof uploaded! Status: <strong>{{ $order->payment_status }}</strong>
             </div>
+            @if($order->payment_status == 'waiting_confirmation')
+                <p class="text-muted">Your proof is being reviewed by admin.</p>
+            @endif
+        @else
+            <form action="{{ route('order.upload-proof', $order) }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="mb-3">
+                    <label class="form-label">Transfer Receipt</label>
+                    <input type="file" class="form-control @error('payment_proof') is-invalid @enderror" 
+                           name="payment_proof" accept="image/*,.pdf" required>
+                    <small class="text-muted">Max file size: 2MB. Allowed: JPG, PNG, PDF</small>
+                    @error('payment_proof')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-upload me-2"></i>Upload Proof
+                </button>
+            </form>
+        @endif
+    </div>
+</div>
 
             <div class="text-center">
                 <a href="{{ route('home') }}" class="btn btn-outline-primary">

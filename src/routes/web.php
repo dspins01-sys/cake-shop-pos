@@ -24,7 +24,21 @@ Route::prefix('cart')->name('cart.')->group(function () {
 
 // Order success page (public - DI LUAR GROUP CART)
 Route::get('/order/success/{order}', [App\Http\Controllers\OrderController::class, 'success'])->name('order.success');
+// Order tracking (public)
+Route::get('/track', [App\Http\Controllers\OrderController::class, 'trackForm'])->name('order.track.form');
+Route::post('/track', [App\Http\Controllers\OrderController::class, 'track'])->name('order.track');
 
+// Order upload proof (public - butuh email buat verifikasi)
+Route::post('/order/upload-proof/{order}', [App\Http\Controllers\OrderController::class, 'uploadProof'])->name('order.upload-proof');
+
+// Admin order management
+Route::prefix('admin/orders')->name('admin.orders.')->middleware(['auth', 'admin'])->group(function () {
+    Route::get('/', [App\Http\Controllers\OrderController::class, 'index'])->name('index');
+    Route::get('/{order}', [App\Http\Controllers\OrderController::class, 'show'])->name('show');
+    Route::post('/{order}/confirm-payment', [App\Http\Controllers\OrderController::class, 'confirmPayment'])->name('confirm-payment');
+    Route::post('/{order}/complete', [App\Http\Controllers\OrderController::class, 'complete'])->name('complete');
+    Route::post('/{order}/cancel', [App\Http\Controllers\OrderController::class, 'cancel'])->name('cancel');
+});
 // Admin routes
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
     Route::resource('products', App\Http\Controllers\Admin\ProductController::class);
