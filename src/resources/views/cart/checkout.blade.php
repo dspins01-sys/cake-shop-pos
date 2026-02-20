@@ -115,7 +115,7 @@
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <div class="p-3 bg-white rounded">
-                                        <img src="https://upload.wikimedia.org/wikipedia/commons/e/e6/Bank_Mandiri_logo.svg" 
+                                        <img src="https://upload.wikimedia.org/wikipedia/commons/a/ad/Bank_Mandiri_logo_2016.svg" 
                                              alt="Mandiri" style="height: 30px; margin-bottom: 10px;">
                                         <p class="mb-1"><strong>Bank Mandiri</strong></p>
                                         <p class="mb-1">Account No: <strong class="text-primary">9876543210</strong></p>
