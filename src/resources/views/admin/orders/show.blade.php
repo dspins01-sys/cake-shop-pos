@@ -13,7 +13,7 @@
         <a href="{{ route('invoice.print', $order) }}" target="_blank" class="btn btn-info">
             <i class="fas fa-print"></i> Print A4
         </a>
-        <a href="{{ route('invoice.thermal', $order) }}" target="_blank" class="btn btn-secondary">
+        <a href="{{ route('invoice.thermal', $order) }}" target="_blank" class="btn btn-info">
             <i class="fas fa-receipt"></i> Thermal (Struk)
         </a>
         <a href="{{ route('admin.orders.index') }}" class="btn btn-outline-secondary">
