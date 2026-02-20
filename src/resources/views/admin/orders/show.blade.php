@@ -143,10 +143,19 @@
                             </form>
                         @endif
 
-                        @if($order->status == 'pending' || $order->status == 'processing')
-                            <form action="{{ route('admin.orders.complete', $order) }}" method="POST">
+                        @if($order->payment_status == 'paid' && $order->status == 'pending')
+                            <form action="{{ route('admin.orders.process', $order) }}" method="POST">
                                 @csrf
                                 <button type="submit" class="btn btn-primary w-100 mb-2">
+                                    <i class="fas fa-cog me-2"></i>Process Order
+                                </button>
+                            </form>
+                        @endif
+
+                        @if($order->status == 'processing')
+                            <form action="{{ route('admin.orders.complete', $order) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="btn btn-success w-100 mb-2">
                                     <i class="fas fa-check me-2"></i>Mark as Completed
                                 </button>
                             </form>
@@ -154,7 +163,7 @@
 
                         @if($order->status != 'cancelled' && $order->status != 'completed')
                             <form action="{{ route('admin.orders.cancel', $order) }}" method="POST" 
-                                  onsubmit="return confirm('Cancel this order?')">
+                                onsubmit="return confirm('Cancel this order?')">
                                 @csrf
                                 <button type="submit" class="btn btn-outline-danger w-100">
                                     <i class="fas fa-times me-2"></i>Cancel Order

@@ -116,15 +116,6 @@ public function uploadProof(Request $request, Order $order)
     /**
      * Mark order as completed (admin only)
      */
-    public function complete(Order $order)
-    {
-        $order->update([
-            'status' => 'completed'
-        ]);
-
-        return redirect()->route('admin.orders.show', $order)
-            ->with('success', 'Order completed successfully!');
-    }
 
     /**
      * Cancel order (admin only)
@@ -138,4 +129,37 @@ public function uploadProof(Request $request, Order $order)
         return redirect()->route('admin.orders.show', $order)
             ->with('success', 'Order cancelled.');
     }
+    /**
+ * Process order (admin only)
+ */
+public function processOrder(Order $order)
+{
+    $order->update([
+        'status' => 'processing'
+    ]);
+
+    // Optional: Kirim email ke customer bahwa order sedang diproses
+    // Mail::to($order->customer_email)->send(new OrderProcessing($order));
+
+    return redirect()->route('admin.orders.show', $order)
+        ->with('success', 'Order is now being processed.');
+}
+   public function complete(Order $order)
+{
+    $order->update([
+        'status' => 'completed'
+    ]);
+
+    // Optional: Kirim email ke customer bahwa order selesai
+    // Mail::to($order->customer_email)->send(new OrderCompleted($order));
+
+    return redirect()->route('admin.orders.show', $order)
+        ->with('success', 'Order completed successfully!');
+}
+
+
+/**
+ * Mark order as completed (admin only)
+ */
+
 }

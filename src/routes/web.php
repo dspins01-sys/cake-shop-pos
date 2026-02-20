@@ -36,9 +36,11 @@ Route::prefix('admin/orders')->name('admin.orders.')->middleware(['auth', 'admin
     Route::get('/', [App\Http\Controllers\OrderController::class, 'index'])->name('index');
     Route::get('/{order}', [App\Http\Controllers\OrderController::class, 'show'])->name('show');
     Route::post('/{order}/confirm-payment', [App\Http\Controllers\OrderController::class, 'confirmPayment'])->name('confirm-payment');
+    Route::post('/{order}/process', [App\Http\Controllers\OrderController::class, 'processOrder'])->name('process'); // <-- TAMBAH INI
     Route::post('/{order}/complete', [App\Http\Controllers\OrderController::class, 'complete'])->name('complete');
     Route::post('/{order}/cancel', [App\Http\Controllers\OrderController::class, 'cancel'])->name('cancel');
 });
+
 // Admin routes
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
     Route::resource('products', App\Http\Controllers\Admin\ProductController::class);
