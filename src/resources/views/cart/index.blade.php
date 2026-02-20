@@ -37,17 +37,18 @@
                         @foreach($cart as $id => $item)
                         <div class="row mb-3 pb-3 border-bottom align-items-center">
                             <div class="col-md-2">
-                                <!-- GANTI BAGIAN INI DENGAN GAMBAR -->
                                 <a href="{{ route('products.show', $item['slug'] ?? '') }}" class="d-block">
-                                    <div class="bg-light rounded p-2 text-center" style="height: 80px; width: 80px; overflow: hidden;">
+                                    <div class="bg-light rounded" style="width: 100px; height: 100px; overflow: hidden;">
                                         @if(isset($item['image']) && $item['image'])
                                             <img src="{{ asset('storage/' . $item['image']) }}" 
                                                 alt="{{ $item['name'] }}"
                                                 style="width: 100%; height: 100%; object-fit: cover;"
-                                                class="img-fluid rounded"
-                                                onerror="this.src='https://via.placeholder.com/80x80?text=No+Image'; this.onerror=null;">
+                                                class="img-fluid"
+                                                onerror="this.src='https://via.placeholder.com/100x100?text=No+Image'; this.onerror=null;">
                                         @else
-                                            <i class="fas fa-cake-candles fa-2x text-secondary"></i>
+                                            <div class="d-flex align-items-center justify-content-center h-100">
+                                                <i class="fas fa-cake-candles fa-2x text-secondary"></i>
+                                            </div>
                                         @endif
                                     </div>
                                 </a>
