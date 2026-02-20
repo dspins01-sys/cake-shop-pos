@@ -23,16 +23,18 @@ class CartController extends Controller
     /**
      * Add item to cart
      */
-    public function add(Request $request, Product $product)
-    {
-        $request->validate([
-            'quantity' => 'required|integer|min:1|max:' . $product->stock
-        ]);
-
-        CartHelper::addToCart($product, $request->quantity);
-
-        return redirect()->back()->with('success', 'Product added to cart!');
-    }
+   // Di CartController@add
+public function add(Request $request, Product $product)
+{
+    $availableStock = $product->available_stock; // pake accessor
+    
+    $request->validate([
+        'quantity' => 'required|integer|min:1|max:' . $availableStock
+    ]);
+    
+    CartHelper::addToCart($product, $request->quantity);
+    return redirect()->back()->with('success', 'Product added to cart!');
+}
 
     /**
      * Update cart item
@@ -212,4 +214,5 @@ $order = \App\Models\Order::create([
     return redirect()->route('order.success', $order)
         ->with('success', 'Order placed successfully! Check your email for confirmation.');
 }
+
 }
