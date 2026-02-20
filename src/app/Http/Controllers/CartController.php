@@ -26,13 +26,14 @@ class CartController extends Controller
    // Di CartController@add
 public function add(Request $request, Product $product)
 {
-    $availableStock = $product->available_stock; // pake accessor
+    $availableStock = $product->available_stock;
     
     $request->validate([
         'quantity' => 'required|integer|min:1|max:' . $availableStock
     ]);
-    
+
     CartHelper::addToCart($product, $request->quantity);
+
     return redirect()->back()->with('success', 'Product added to cart!');
 }
 
@@ -87,42 +88,27 @@ public function checkout()
         return redirect()->route('cart.index')->with('error', 'Your cart is empty!');
     }
     
-    // VALIDASI STOK SEBELUM CHECKOUT
+    // VALIDASI STOK REAL-TIME
     $stockIssues = [];
-    $cartUpdated = false;
-    
     foreach ($cart as $id => $item) {
         $product = Product::find($id);
+        $availableStock = $product->available_stock ?? 0;
         
-        if (!$product) {
-            // Produk sudah tidak ada - hapus
-            CartHelper::removeFromCart($id);
-            $stockIssues[] = "{$item['name']} (produk tidak tersedia)";
-            $cartUpdated = true;
-        } 
-        elseif ($product->stock < $item['quantity']) {
-            // Stok tidak cukup - catat issue tapi jangan hapus dulu
+        if ($availableStock < $item['quantity']) {
             $stockIssues[] = [
-                'id' => $id,
                 'name' => $item['name'],
                 'requested' => $item['quantity'],
-                'available' => $product->stock,
-                'max' => $product->stock
+                'available' => $availableStock,
+                'max' => $availableStock
             ];
         }
     }
     
-    // Kalo ada issue stok, redirect ke cart dengan pesan
     if (!empty($stockIssues)) {
-        $message = 'Beberapa item melebihi stok tersedia:';
+        $message = 'Stok beberapa produk berubah:';
         foreach ($stockIssues as $issue) {
-            if (is_array($issue)) {
-                $message .= " • {$issue['name']}: kamu minta {$issue['requested']}, stok hanya {$issue['available']}";
-            } else {
-                $message .= " • {$issue}";
-            }
+            $message .= " • {$issue['name']}: kamu minta {$issue['requested']}, tersisa {$issue['available']}";
         }
-        $message .= ' Silakan sesuaikan jumlah pesanan.';
         
         return redirect()->route('cart.index')
             ->with('warning', $message)
@@ -152,14 +138,17 @@ public function process(Request $request)
      $cart = CartHelper::getCart();
     
     // VALIDASI STOK FINAL SEBELUM BUAT ORDER
-    foreach ($cart as $id => $item) {
-        $product = Product::find($id);
-        if (!$product || $product->stock < $item['quantity']) {
-            return back()->with('error', 
-                "Stok {$item['name']} berubah! Tersedia: " . ($product->stock ?? 0)
-            )->withInput();
-        }
+    // Di method process, ganti validasi stok dengan:
+foreach ($cart as $id => $item) {
+    $product = Product::find($id);
+    $availableStock = $product->available_stock ?? 0;
+    
+    if ($availableStock < $item['quantity']) {
+        return back()->with('error', 
+            "Stok {$item['name']} berubah! Tersedia: {$availableStock}"
+        )->withInput();
     }
+}
     
     if (empty($cart)) {
         return redirect()->route('cart.index')

@@ -18,7 +18,7 @@
     </nav>
 
     <div class="row g-5">
-        <!-- Product Image - FIXED: object-fit cover untuk gambar full -->
+        <!-- Product Image -->
         <div class="col-md-6">
             <div class="bg-light rounded-4 p-0" style="height: 450px; overflow: hidden; position: relative;">
                 @if($product->image)
@@ -51,28 +51,58 @@
 
             <div class="mb-4">
                 <h5>Stock Status</h5>
-                @if($product->stock > 0)
-                    <p class="text-success">
-                        <i class="fas fa-check-circle"></i> 
-                        In Stock ({{ $product->stock }} available)
-                    </p>
+                @php
+                    $availableStock = $product->available_stock;
+                    $pendingStock = $product->pending_orders_count;
+                @endphp
+                
+                @if($availableStock > 0)
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <strong>Tersedia: {{ $availableStock }}</strong>
+                        @if($pendingStock > 0)
+                            <br>
+                            <small class="text-muted">
+                                <i class="fas fa-clock me-1"></i>
+                                {{ $pendingStock }} unit sedang diproses untuk pesanan lain
+                            </small>
+                        @endif
+                    </div>
+                    
+                    <div class="mt-2">
+                        <span class="badge bg-info text-white">
+                            <i class="fas fa-box me-1"></i> Stok fisik: {{ $product->stock }}
+                        </span>
+                        @if($pendingStock > 0)
+                            <span class="badge bg-warning text-dark">
+                                <i class="fas fa-clock me-1"></i> Diproses: {{ $pendingStock }}
+                            </span>
+                        @endif
+                    </div>
                 @else
-                    <p class="text-danger">
-                        <i class="fas fa-times-circle"></i> 
-                        Out of Stock
-                    </p>
+                    <div class="alert alert-danger">
+                        <i class="fas fa-times-circle me-2"></i>
+                        <strong>Stok Habis</strong>
+                        @if($product->stock > 0)
+                            <br>
+                            <small class="text-muted">
+                                <i class="fas fa-clock me-1"></i>
+                                {{ $product->stock }} unit sedang diproses
+                            </small>
+                        @endif
+                    </div>
                 @endif
             </div>
 
             <!-- Quantity and Add to Cart -->
-            <div class="d-flex gap-3 align-items-center mb-4">
-                <div class="input-group" style="width: 150px;">
-                    <button class="btn btn-outline-secondary" type="button" onclick="decreaseQty()">-</button>
-                    <input type="number" class="form-control text-center" id="quantity" value="1" min="1" max="{{ $product->stock }}" readonly>
-                    <button class="btn btn-outline-secondary" type="button" onclick="increaseQty()">+</button>
-                </div>
+            @if($availableStock > 0)
+                <div class="d-flex gap-3 align-items-center mb-4">
+                    <div class="input-group" style="width: 150px;">
+                        <button class="btn btn-outline-secondary" type="button" onclick="decreaseQty()">-</button>
+                        <input type="number" class="form-control text-center" id="quantity" value="1" min="1" max="{{ $availableStock }}" readonly>
+                        <button class="btn btn-outline-secondary" type="button" onclick="increaseQty()">+</button>
+                    </div>
 
-                @if($product->stock > 0)
                     <form action="{{ route('cart.add', $product) }}" method="POST" class="flex-grow-1">
                         @csrf
                         <input type="hidden" name="quantity" id="cart-quantity" value="1">
@@ -80,12 +110,21 @@
                             <i class="fas fa-cart-plus"></i> Add to Cart
                         </button>
                     </form>
-                @else
-                    <button class="btn btn-secondary flex-grow-1" disabled>
-                        <i class="fas fa-cart-plus"></i> Out of Stock
-                    </button>
+                </div>
+                
+                @if($availableStock < $product->stock)
+                    <div class="alert alert-warning py-2">
+                        <small>
+                            <i class="fas fa-info-circle me-1"></i>
+                            Hanya {{ $availableStock }} tersedia saat ini. {{ $pendingStock }} lainnya sedang diproses.
+                        </small>
+                    </div>
                 @endif
-            </div>
+            @else
+                <button class="btn btn-secondary w-100 py-3 mb-4" disabled>
+                    <i class="fas fa-cart-plus"></i> Out of Stock
+                </button>
+            @endif
 
             <!-- Product Meta -->
             <div class="border-top pt-3">
@@ -104,26 +143,41 @@
             <h3 class="mb-4">Related Products</h3>
             <div class="row g-4">
                 @foreach($relatedProducts as $related)
+                    @php
+                        $relatedAvailable = $related->available_stock;
+                    @endphp
                     <div class="col-md-3">
                         <div class="card product-card h-100">
-                            <div class="bg-light" style="height: 180px; overflow: hidden;">
-                                @if($related->image)
-                                    <img src="{{ asset('storage/'.$related->image) }}" 
-                                         alt="{{ $related->name }}" 
-                                         class="w-100 h-100"
-                                         style="object-fit: cover;">
-                                @else
-                                    <div class="d-flex align-items-center justify-content-center h-100">
-                                        <i class="fas fa-cake-candles fa-3x text-secondary"></i>
+                            <div class="position-relative">
+                                @if($relatedAvailable <= 0)
+                                    <div class="position-absolute top-0 start-0 bg-danger text-white px-3 py-1 m-2 rounded z-1">
+                                        Habis
+                                    </div>
+                                @elseif($relatedAvailable < 5)
+                                    <div class="position-absolute top-0 start-0 bg-warning text-dark px-3 py-1 m-2 rounded z-1">
+                                        Sisa {{ $relatedAvailable }}
                                     </div>
                                 @endif
+                                
+                                <div class="bg-light" style="height: 180px; overflow: hidden;">
+                                    @if($related->image)
+                                        <img src="{{ asset('storage/'.$related->image) }}" 
+                                             alt="{{ $related->name }}" 
+                                             class="w-100 h-100"
+                                             style="object-fit: cover;">
+                                    @else
+                                        <div class="d-flex align-items-center justify-content-center h-100">
+                                            <i class="fas fa-cake-candles fa-3x text-secondary"></i>
+                                        </div>
+                                    @endif
+                                </div>
                             </div>
                             <div class="card-body">
                                 <h6 class="card-title">{{ $related->name }}</h6>
                                 <p class="text-danger fw-bold mb-2">Rp {{ number_format($related->price, 0, ',', '.') }}</p>
                                 <a href="{{ route('products.show', $related->slug) }}" 
                                    class="btn btn-outline-primary btn-sm w-100">
-                                    View Details
+                                    Detail
                                 </a>
                             </div>
                         </div>
@@ -140,7 +194,7 @@
 function increaseQty() {
     let qty = document.getElementById('quantity');
     let cartQty = document.getElementById('cart-quantity');
-    let max = {{ $product->stock }};
+    let max = {{ $availableStock }};
     let newValue = parseInt(qty.value) + 1;
     if (newValue <= max) {
         qty.value = newValue;

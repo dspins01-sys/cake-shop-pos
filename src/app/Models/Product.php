@@ -55,4 +55,30 @@ public function getImageUrlAttribute()
     // Return placeholder image kalo gak ada gambar
     return 'https://via.placeholder.com/300x300?text=No+Image';
 }
+/**
+ * Get available stock (real stock - pending orders)
+ */
+public function getAvailableStockAttribute()
+{
+    // Hitung semua quantity dari order PENDING & WAITING_CONFIRMATION
+    $pendingOrders = \App\Models\OrderItem::where('product_id', $this->id)
+        ->whereHas('order', function($q) {
+            $q->whereIn('status', ['pending', 'waiting_confirmation']);
+        })
+        ->sum('quantity');
+    
+    return $this->stock - $pendingOrders;
+}
+
+/**
+ * Get pending orders count for display
+ */
+public function getPendingOrdersCountAttribute()
+{
+    return \App\Models\OrderItem::where('product_id', $this->id)
+        ->whereHas('order', function($q) {
+            $q->whereIn('status', ['pending', 'waiting_confirmation']);
+        })
+        ->sum('quantity');
+}
 }
