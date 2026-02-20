@@ -110,20 +110,23 @@
             @endif
         @else
             <form action="{{ route('order.upload-proof', $order) }}" method="POST" enctype="multipart/form-data">
-                @csrf
-                <div class="mb-3">
-                    <label class="form-label">Transfer Receipt</label>
-                    <input type="file" class="form-control @error('payment_proof') is-invalid @enderror" 
-                           name="payment_proof" accept="image/*,.pdf" required>
-                    <small class="text-muted">Max file size: 2MB. Allowed: JPG, PNG, PDF</small>
-                    @error('payment_proof')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-upload me-2"></i>Upload Proof
-                </button>
-            </form>
+    @csrf
+    @if(!auth()->check())
+        <input type="hidden" name="email" value="{{ $order->customer_email }}">
+    @endif
+    <div class="mb-3">
+        <label class="form-label">Transfer Receipt</label>
+        <input type="file" class="form-control @error('payment_proof') is-invalid @enderror" 
+               name="payment_proof" accept="image/*,.pdf" required>
+        <small class="text-muted">Max file size: 2MB. Allowed: JPG, PNG, PDF</small>
+        @error('payment_proof')
+            <div class="invalid-feedback">{{ $message }}</div>
+        @enderror
+    </div>
+    <button type="submit" class="btn btn-primary">
+        <i class="fas fa-upload me-2"></i>Upload Proof
+    </button>
+</form>
         @endif
     </div>
 </div>

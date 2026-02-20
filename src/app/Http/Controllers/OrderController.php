@@ -35,31 +35,37 @@ class OrderController extends Controller
     /**
      * Upload payment proof (for customer)
      */
-    public function uploadProof(Request $request, Order $order)
-    {
-        $request->validate([
-            'payment_proof' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048'
-        ]);
+    /**
+ * Upload payment proof (for customer)
+ */
+public function uploadProof(Request $request, Order $order)
+{
+    $request->validate([
+        'payment_proof' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048'
+    ]);
 
-        // Cek apakah order ini milik customer yang sama (berdasarkan email)
-        if ($order->customer_email !== auth()->user()->email ?? $request->email) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        // Upload file
-        if ($request->hasFile('payment_proof')) {
-            $path = $request->file('payment_proof')->store('payment-proofs', 'public');
-            
-            $order->update([
-                'payment_proof' => $path,
-                'payment_status' => 'waiting_confirmation',
-                'status' => 'waiting_confirmation'
-            ]);
-        }
-
-        return redirect()->route('order.success', $order)
-            ->with('success', 'Payment proof uploaded successfully! Your order is now waiting for admin confirmation.');
+    // Cek apakah order ini milik customer yang sama
+    // Untuk guest, kita pake email dari session atau input
+    $userEmail = auth()->check() ? auth()->user()->email : $request->email;
+    
+    if (!$userEmail || $order->customer_email !== $userEmail) {
+        return back()->with('error', 'Unauthorized: This order does not belong to you.');
     }
+
+    // Upload file
+    if ($request->hasFile('payment_proof')) {
+        $path = $request->file('payment_proof')->store('payment-proofs', 'public');
+        
+        $order->update([
+            'payment_proof' => $path,
+            'payment_status' => 'waiting_confirmation',
+            'status' => 'waiting_confirmation'
+        ]);
+    }
+
+    return redirect()->route('order.success', $order)
+        ->with('success', 'Payment proof uploaded successfully! Your order is now waiting for admin confirmation.');
+}
 
     /**
      * Track order by order number and email (for guest)
