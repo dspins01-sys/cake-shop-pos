@@ -81,18 +81,6 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('home') }}">Home</a>
                     </li>
-                    
-                    @php
-                        $categories = App\Models\Category::all();
-                    @endphp
-                    
-                    @foreach($categories as $cat)
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('products.category', $cat->slug) }}">
-                                {{ $cat->name }}
-                            </a>
-                        </li>
-                    @endforeach
                 </ul>
 
                 <!-- Right Menu - User & Cart -->
