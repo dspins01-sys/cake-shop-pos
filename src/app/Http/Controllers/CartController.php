@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Helpers\CartHelper;
 use Illuminate\Http\Request;
+use App\Models\Order;
 
 class CartController extends Controller
 {
@@ -82,4 +83,72 @@ class CartController extends Controller
         
         return view('cart.checkout', compact('cart', 'total'));
     }
+    /**
+ * Process checkout and create order
+ */
+public function process(Request $request)
+{
+    // Validasi input
+    $request->validate([
+        'customer_name' => 'required|string|max:255',
+        'customer_email' => 'required|email|max:255',
+        'customer_phone' => 'required|string|max:20',
+        'address' => 'required|string',
+        'payment_method' => 'required|in:manual',
+        'payment_proof' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+        'notes' => 'nullable|string'
+    ]);
+
+    // Ambil cart dari session
+    $cart = CartHelper::getCart();
+    
+    if (empty($cart)) {
+        return redirect()->route('cart.index')
+            ->with('error', 'Your cart is empty!');
+    }
+
+    // Hitung total
+    $total = CartHelper::getTotal();
+
+    // Buat order number unik
+    $orderNumber = 'INV-' . date('Ymd') . '-' . strtoupper(uniqid());
+
+    // Simpan ke database
+    $order = \App\Models\Order::create([
+        'order_number' => $orderNumber,
+        'customer_name' => $request->customer_name,
+        'customer_email' => $request->customer_email,
+        'customer_phone' => $request->customer_phone,
+        'address' => $request->address,
+        'total' => $total,
+        'status' => 'pending',
+        'payment_method' => $request->payment_method,
+        'payment_status' => 'unpaid',
+        'notes' => $request->notes,
+    ]);
+
+    // Simpan order items
+    foreach ($cart as $id => $item) {
+        $order->items()->create([
+            'product_id' => $id,
+            'product_name' => $item['name'],
+            'product_price' => $item['price'],
+            'quantity' => $item['quantity'],
+            'subtotal' => $item['price'] * $item['quantity'],
+        ]);
+    }
+
+    // Upload bukti transfer kalo ada
+    if ($request->hasFile('payment_proof')) {
+        $path = $request->file('payment_proof')->store('payment-proofs', 'public');
+        $order->update(['payment_proof' => $path]);
+    }
+
+    // Hapus cart dari session
+    CartHelper::clearCart();
+
+    // Redirect ke halaman sukses (bikin dulu nanti)
+    return redirect()->route('order.success', $order)
+        ->with('success', 'Order placed successfully! Check your email for confirmation.');
+}
 }
