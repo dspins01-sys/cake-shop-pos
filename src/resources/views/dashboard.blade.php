@@ -5,7 +5,15 @@
 @section('content')
 <div class="container py-4">
     <h1 class="mb-4">Dashboard</h1>
-    
+        <!-- QUICK ACTION BUTTONS - SUPER SIMPLE -->
+    <div class="mb-4">
+        <a href="{{ route('admin.products.index') }}" class="btn btn-primary me-2">
+            <i class="fas fa-box"></i> Manage Products
+        </a>
+        <a href="{{ route('profile.edit') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-user"></i> My Profile
+        </a>
+    </div>
     @if(session('error'))
         <div class="alert alert-danger">{{ session('error') }}</div>
     @endif
