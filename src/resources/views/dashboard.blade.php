@@ -1,103 +1,230 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard')
+@section('title', 'Dashboard Admin')
 
 @section('content')
 <div class="container py-4">
-    <h1 class="mb-4">Dashboard</h1>
-    
-    @if(session('error'))
-        <div class="alert alert-danger">{{ session('error') }}</div>
-    @endif
-    
-    <div class="row">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2">
+            <i class="fas fa-chart-line me-2 text-primary"></i>
+            Dashboard Admin
+        </h1>
+        <div>
+            <span class="badge bg-primary fs-6 p-2">
+                <i class="fas fa-user-shield"></i> {{ Auth::user()->name }} (Admin)
+            </span>
+        </div>
+    </div>
+
+    <!-- QUICK ACTION CARDS -->
+    <div class="row mb-4">
         <div class="col-md-3 mb-3">
-            <div class="card text-white bg-primary">
-                <div class="card-body">
-                    <h5 class="card-title">Total Products</h5>
-                    <h2>{{ $totalProducts }}</h2>
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="display-4 text-primary mb-3">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <h5 class="card-title">Manage Products</h5>
+                    <p class="card-text text-muted small">Add, edit, or delete products</p>
+                    <a href="{{ route('admin.products.index') }}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-arrow-right"></i> Go to Products
+                    </a>
                 </div>
             </div>
         </div>
+
         <div class="col-md-3 mb-3">
-            <div class="card text-white bg-success">
-                <div class="card-body">
-                    <h5 class="card-title">Total Categories</h5>
-                    <h2>{{ $totalCategories }}</h2>
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="display-4 text-success mb-3">
+                        <i class="fas fa-shopping-bag"></i>
+                    </div>
+                    <h5 class="card-title">Manage Orders</h5>
+                    <p class="card-text text-muted small">View and process orders</p>
+                    <a href="#" class="btn btn-success btn-sm">
+                        <i class="fas fa-arrow-right"></i> Go to Orders
+                    </a>
                 </div>
             </div>
         </div>
+
         <div class="col-md-3 mb-3">
-            <div class="card text-white bg-info">
-                <div class="card-body">
-                    <h5 class="card-title">Total Orders</h5>
-                    <h2>{{ $totalOrders }}</h2>
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="display-4 text-info mb-3">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h5 class="card-title">Manage Users</h5>
+                    <p class="card-text text-muted small">View and manage users</p>
+                    <a href="#" class="btn btn-info btn-sm text-white">
+                        <i class="fas fa-arrow-right"></i> Go to Users
+                    </a>
                 </div>
             </div>
         </div>
+
         <div class="col-md-3 mb-3">
-            <div class="card text-white bg-warning">
-                <div class="card-body">
-                    <h5 class="card-title">Low Stock</h5>
-                    <h2>{{ $lowStockProducts->count() }}</h2>
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="display-4 text-warning mb-3">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <h5 class="card-title">Reports</h5>
+                    <p class="card-text text-muted small">Sales and inventory reports</p>
+                    <a href="#" class="btn btn-warning btn-sm">
+                        <i class="fas fa-arrow-right"></i> View Reports
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row mt-4">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h5>Recent Orders</h5>
-                </div>
+    <!-- STATS CARDS -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-primary">
                 <div class="card-body">
-                    @if($recentOrders->count() > 0)
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Order #</th>
-                                    <th>Customer</th>
-                                    <th>Total</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($recentOrders as $order)
-                                <tr>
-                                    <td>{{ $order->order_number }}</td>
-                                    <td>{{ $order->customer_name }}</td>
-                                    <td>Rp {{ number_format($order->total, 0, ',', '.') }}</td>
-                                    <td>{{ $order->status }}</td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    @else
-                        <p class="text-muted">No orders yet</p>
-                    @endif
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title">Total Products</h6>
+                            <h2 class="mb-0">{{ $totalProducts }}</h2>
+                        </div>
+                        <i class="fas fa-box fa-3x opacity-50"></i>
+                    </div>
                 </div>
             </div>
         </div>
         
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h5>Low Stock Alert</h5>
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title">Total Categories</h6>
+                            <h2 class="mb-0">{{ $totalCategories }}</h2>
+                        </div>
+                        <i class="fas fa-tags fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title">Total Orders</h6>
+                            <h2 class="mb-0">{{ $totalOrders }}</h2>
+                        </div>
+                        <i class="fas fa-shopping-cart fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- RECENT ORDERS TABLE -->
+        <div class="col-md-7 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history me-2 text-primary"></i>Recent Orders
+                    </h5>
+                    <a href="#" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    @if($recentOrders->count() > 0)
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Order #</th>
+                                        <th>Customer</th>
+                                        <th>Total</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($recentOrders as $order)
+                                    <tr>
+                                        <td>{{ $order->order_number }}</td>
+                                        <td>{{ $order->customer_name }}</td>
+                                        <td>Rp {{ number_format($order->total, 0, ',', '.') }}</td>
+                                        <td>
+                                            <span class="badge bg-{{ $order->status == 'completed' ? 'success' : ($order->status == 'pending' ? 'warning' : 'secondary') }}">
+                                                {{ $order->status }}
+                                            </span>
+                                        </td>
+                                        <td>{{ $order->created_at->format('d M') }}</td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <div class="text-center py-4">
+                            <i class="fas fa-shopping-bag fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No orders yet</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        <!-- LOW STOCK ALERT -->
+        <div class="col-md-5 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2 text-warning"></i>Low Stock Alert
+                    </h5>
+                    <a href="{{ route('admin.products.index') }}" class="btn btn-sm btn-outline-warning">
+                        Manage
+                    </a>
                 </div>
                 <div class="card-body">
                     @if($lowStockProducts->count() > 0)
-                        <ul class="list-group">
+                        <div class="list-group">
                             @foreach($lowStockProducts as $product)
-                                <li class="list-group-item d-flex justify-content-between">
-                                    {{ $product->name }}
-                                    <span class="badge bg-danger">Stock: {{ $product->stock }}</span>
-                                </li>
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-0">{{ $product->name }}</h6>
+                                        <small class="text-muted">{{ $product->category->name ?? 'No category' }}</small>
+                                    </div>
+                                    <span class="badge bg-danger">{{ $product->stock }} left</span>
+                                </div>
                             @endforeach
-                        </ul>
+                        </div>
                     @else
-                        <p class="text-muted">All products have sufficient stock</p>
+                        <div class="text-center py-4">
+                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                            <p class="text-muted">All products have sufficient stock</p>
+                        </div>
                     @endif
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PROFILE CARD -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h5 class="mb-1">
+                        <i class="fas fa-user-circle me-2 text-primary"></i>
+                        Welcome, {{ Auth::user()->name }}!
+                    </h5>
+                    <p class="text-muted mb-0">{{ Auth::user()->email }}</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="{{ route('profile.edit') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-edit me-2"></i>Edit Profile
+                    </a>
                 </div>
             </div>
         </div>

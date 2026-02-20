@@ -11,18 +11,38 @@ class DashboardController extends Controller
 {
     public function index()
     {
+        // Cek admin
+        if (auth()->user()->role !== 'admin') {
+            abort(403);
+        }
+
+        // STATS
         $totalProducts = Product::count();
         $totalCategories = Category::count();
         $totalOrders = Order::count();
-        $recentOrders = Order::with('items')->latest()->take(5)->get();
-        $lowStockProducts = Product::where('stock', '<', 5)->take(5)->get();
+        
+        // LOW STOCK (produk dengan stok < 5)
+        $lowStockProducts = Product::with('category')
+            ->where('stock', '<', 5)
+            ->where('stock', '>', 0)
+            ->orderBy('stock', 'asc')
+            ->take(10)
+            ->get();
+        
+        // RECENT ORDERS (5 order terbaru)
+        $recentOrders = Order::with('items')
+            ->latest()
+            ->take(5)
+            ->get();
+        
+        // QUICK ACTIONS (nanti di view)
         
         return view('dashboard', compact(
-            'totalProducts', 
+            'totalProducts',
             'totalCategories', 
-            'totalOrders', 
-            'recentOrders',
-            'lowStockProducts'
+            'totalOrders',
+            'lowStockProducts',
+            'recentOrders'
         ));
     }
 }
