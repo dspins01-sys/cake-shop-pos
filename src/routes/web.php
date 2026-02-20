@@ -23,8 +23,7 @@ Route::prefix('cart')->name('cart.')->group(function () {
     Route::delete('/remove/{id}', [App\Http\Controllers\CartController::class, 'remove'])->name('remove');
     Route::delete('/clear', [App\Http\Controllers\CartController::class, 'clear'])->name('clear');
     Route::get('/checkout', [App\Http\Controllers\CartController::class, 'checkout'])->name('checkout');
-    // Di routes/web.php, tambahin ini di group cart routes:
-Route::post('/checkout/process', [App\Http\Controllers\CartController::class, 'process'])->name('checkout.process');
+    Route::post('/checkout/process', [App\Http\Controllers\CartController::class, 'process'])->name('checkout.process');
 });
 // Routes admin - HANYA UNTUK ADMIN
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
