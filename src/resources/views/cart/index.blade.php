@@ -37,22 +37,21 @@
                         @foreach($cart as $id => $item)
                         <div class="row mb-3 pb-3 border-bottom align-items-center">
                             <div class="col-md-2">
-                                <a href="{{ route('products.show', $item['slug'] ?? '') }}" class="d-block">
-                                    <div class="bg-light rounded" style="width: 100px; height: 100px; overflow: hidden;">
-                                        @if(isset($item['image']) && $item['image'])
-                                            <img src="{{ asset('storage/' . $item['image']) }}" 
-                                                alt="{{ $item['name'] }}"
-                                                style="width: 100%; height: 100%; object-fit: cover;"
-                                                class="img-fluid"
-                                                onerror="this.src='https://via.placeholder.com/100x100?text=No+Image'; this.onerror=null;">
-                                        @else
-                                            <div class="d-flex align-items-center justify-content-center h-100">
-                                                <i class="fas fa-cake-candles fa-2x text-secondary"></i>
-                                            </div>
-                                        @endif
-                                    </div>
-                                </a>
-                            </div>
+                            <a href="{{ route('products.show', $item['slug'] ?? '') }}" class="d-block">
+                                <div class="bg-light rounded d-flex align-items-center justify-content-center" 
+                                    style="width: 100px; height: 100px; overflow: hidden; position: relative;">
+                                    @if(isset($item['image']) && $item['image'])
+                                        <img src="{{ asset('storage/' . $item['image']) }}" 
+                                            alt="{{ $item['name'] }}"
+                                            style="width: 100%; height: 100%; object-fit: cover; object-position: center; position: absolute; top: 0; left: 0;"
+                                            class="img-fluid"
+                                            onerror="this.style.display='none'; this.parentNode.innerHTML='<i class=\'fas fa-cake-candles fa-2x text-secondary\'></i>';">
+                                    @else
+                                        <i class="fas fa-cake-candles fa-2x text-secondary"></i>
+                                    @endif
+                                </div>
+                            </a>
+                        </div>
                             <div class="col-md-4">
                                 <h5 class="mb-1">{{ $item['name'] }}</h5>
                                 <p class="text-muted small mb-0">Stock: {{ $item['stock'] ?? 'N/A' }}</p>
