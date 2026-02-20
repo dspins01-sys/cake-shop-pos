@@ -24,6 +24,8 @@ Route::prefix('cart')->name('cart.')->group(function () {
     Route::delete('/clear', [App\Http\Controllers\CartController::class, 'clear'])->name('clear');
     Route::get('/checkout', [App\Http\Controllers\CartController::class, 'checkout'])->name('checkout');
     Route::post('/checkout/process', [App\Http\Controllers\CartController::class, 'process'])->name('checkout.process');
+    // Order success page (public - bisa diakses tanpa login)
+Route::get('/order/success/{order}', [App\Http\Controllers\OrderController::class, 'success'])->name('order.success');
 });
 // Routes admin - HANYA UNTUK ADMIN
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
