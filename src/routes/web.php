@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProductController;  // <-- TAMBAHIN INI
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\DashboardController;
 
 // Route::get('/', function () {
 //     return view('welcome');
@@ -21,29 +22,13 @@ Route::prefix('cart')->name('cart.')->group(function () {
     Route::delete('/clear', [App\Http\Controllers\CartController::class, 'clear'])->name('clear');
     Route::get('/checkout', [App\Http\Controllers\CartController::class, 'checkout'])->name('checkout');
 });
-// Routes admin
-Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () {
+// Routes admin - HANYA UNTUK ADMIN
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
     Route::resource('products', App\Http\Controllers\Admin\ProductController::class);
 });
-Route::get('/dashboard', function () {
-    $totalProducts = App\Models\Product::count();
-    $totalCategories = App\Models\Category::count();
-    $totalOrders = App\Models\Order::count();
-    $recentOrders = App\Models\Order::with('items')->latest()->take(5)->get();
-    $lowStockProducts = App\Models\Product::where('stock', '<', 5)->take(5)->get();
-    
-    return view('dashboard', compact(
-        'totalProducts', 
-        'totalCategories', 
-        'totalOrders', 
-        'recentOrders',
-        'lowStockProducts'
-    ));
-})->middleware(['auth', 'verified'])->name('dashboard');
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
+
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'admin'])
+    ->name('dashboard');
 
 require __DIR__.'/auth.php';
