@@ -67,7 +67,6 @@
         </div>
     @endif
     
-    <!-- GANTI BAGIAN INI -->
     <div class="bg-light product-img d-flex align-items-center justify-content-center" style="height: 200px;">
         @if($product->image)
             <img src="{{ asset('storage/' . $product->image) }}" 

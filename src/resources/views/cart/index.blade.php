@@ -43,7 +43,7 @@
                                     @if(isset($item['image']) && $item['image'])
                                         <img src="{{ asset('storage/' . $item['image']) }}" 
                                             alt="{{ $item['name'] }}"
-                                            style="width: 100%; height: 100%; object-fit: cover; object-position: center; position: absolute; top: 0; left: 0;"
+                                            style="width: 100%; height: 100%; object-fit: cover;"
                                             class="img-fluid"
                                             onerror="this.style.display='none'; this.parentNode.innerHTML='<i class=\'fas fa-cake-candles fa-2x text-secondary\'></i>';">
                                     @else
