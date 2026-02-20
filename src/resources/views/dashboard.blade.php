@@ -6,9 +6,45 @@
 <div class="container py-4">
     <h1 class="mb-4">Dashboard</h1>
     
-    @if(session('error'))
-        <div class="alert alert-danger">{{ session('error') }}</div>
-    @endif
+       <!-- QUICK MENU CARDS - TAMBAHAN -->
+    <div class="row mb-4">
+        <!-- Profile Menu -->
+        <div class="col-md-6 mb-3">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body d-flex align-items-center">
+                    <div class="display-4 text-primary me-3">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div>
+                        <h5 class="card-title mb-1">My Profile</h5>
+                        <p class="card-text text-muted small mb-2">{{ Auth::user()->email }}</p>
+                        <a href="{{ route('profile.edit') }}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-edit"></i> Edit Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Products Menu -->
+        <div class="col-md-6 mb-3">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body d-flex align-items-center">
+                    <div class="display-4 text-success me-3">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <div>
+                        <h5 class="card-title mb-1">Manage Products</h5>
+                        <p class="card-text text-muted small mb-2">{{ $totalProducts }} products in catalog</p>
+                        <a href="{{ route('admin.products.index') }}" class="btn btn-sm btn-outline-success">
+                            <i class="fas fa-arrow-right"></i> Go to Products
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- END QUICK MENU CARDS -->
     
     <div class="row">
         <div class="col-md-3 mb-3">
