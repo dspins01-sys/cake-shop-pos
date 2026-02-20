@@ -110,22 +110,26 @@ public function process(Request $request)
     // Hitung total
     $total = CartHelper::getTotal();
 
-    // Buat order number unik
-    $orderNumber = 'INV-' . date('Ymd') . '-' . strtoupper(uniqid());
+   // Buat order number unik
+$orderNumber = 'INV-' . date('Ymd') . '-' . strtoupper(uniqid());
 
-    // Simpan ke database
-    $order = \App\Models\Order::create([
-        'order_number' => $orderNumber,
-        'customer_name' => $request->customer_name,
-        'customer_email' => $request->customer_email,
-        'customer_phone' => $request->customer_phone,
-        'address' => $request->address,
-        'total' => $total,
-        'status' => 'pending',
-        'payment_method' => $request->payment_method,
-        'payment_status' => 'unpaid',
-        'notes' => $request->notes,
-    ]);
+// Buat tracking code UNIK (WAJIB ADA!)
+$trackingCode = 'TRK-' . date('Ymd') . '-' . strtoupper(uniqid());
+
+// Simpan ke database
+$order = \App\Models\Order::create([
+    'order_number' => $orderNumber,
+    'tracking_code' => $trackingCode, // <-- INI WAJIB ADA!
+    'customer_name' => $request->customer_name,
+    'customer_email' => $request->customer_email,
+    'customer_phone' => $request->customer_phone,
+    'address' => $request->address,
+    'total' => $total,
+    'status' => 'pending',
+    'payment_method' => $request->payment_method,
+    'payment_status' => 'unpaid',
+    'notes' => $request->notes,
+]);
 
     // Simpan order items
     foreach ($cart as $id => $item) {
