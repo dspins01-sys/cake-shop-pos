@@ -129,39 +129,15 @@
             text-align: right;
         }
 
-        .qr-section {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #f8fafc;
-            padding: 15px;
-            border-radius: 12px;
-            margin: 15px 0;
-        }
-
-        .qr-code {
-            width: 60px;
-            height: 60px;
-            background: #0f172a;
+        .payment-status {
+            display: inline-block;
+            padding: 4px 8px;
+            background: #22c55e;
             color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
+            border-radius: 20px;
             font-size: 8px;
-            text-align: center;
-        }
-
-        .qr-text {
-            font-size: 10px;
-            color: #475569;
-        }
-
-        .qr-text strong {
-            color: #0f172a;
-            display: block;
-            font-size: 12px;
-            margin-top: 2px;
+            font-weight: 600;
+            text-transform: uppercase;
         }
 
         .totals {
@@ -190,21 +166,21 @@
             border-top: 2px solid #e2e8f0;
         }
 
-        .balance-due {
+        .paid-stamp {
             text-align: center;
             margin: 15px 0;
             padding: 12px;
-            background: #0f172a;
+            background: #22c55e;
             border-radius: 12px;
             color: white;
         }
 
-        .balance-due .label {
+        .paid-stamp .label {
             font-size: 10px;
-            opacity: 0.8;
+            opacity: 0.9;
         }
 
-        .balance-due .amount {
+        .paid-stamp .amount {
             font-size: 20px;
             font-weight: 800;
             color: white;
@@ -261,37 +237,35 @@
     <div class="header">
         <h1>SweetCake</h1>
         <div class="brand">Fresh Baked Daily</div>
-        <div class="brand">Unit 123, Baking District</div>
-        <div class="brand">Near City Park</div>
+        <div class="brand">Jl. Baking District No. 123</div>
         <div class="brand">Jakarta, 12345</div>
-        <div class="brand">sweetcake.com</div>
+        <div class="brand">sweetcake.com | @sweetcake</div>
     </div>
 
     <div class="divider"></div>
 
-    <div class="section-title">BILL TO</div>
+    <div class="section-title">KIRIM KEPADA</div>
     <div class="bill-to">
         <div class="name">{{ $order->customer_name }}</div>
         <div class="detail">📞 {{ $order->customer_phone }}</div>
-        <div class="detail">✉️ {{ $order->customer_email }}</div>
         <div class="detail">📍 {{ $order->address }}</div>
     </div>
 
     <div class="invoice-header">
         <div class="invoice-number">#{{ $order->order_number }}</div>
         <div class="invoice-dates">
-            <div>DATE: {{ $order->created_at->format('M d, Y') }}</div>
-            <div>DUE: On Receipt</div>
+            <div>Tanggal: {{ $order->created_at->format('d M Y') }}</div>
+            <div>Waktu: {{ $order->created_at->format('H:i') }}</div>
         </div>
     </div>
 
     <table>
         <thead>
             <tr>
-                <th>DESCRIPTION</th>
-                <th>RATE</th>
+                <th>PRODUK</th>
                 <th>QTY</th>
-                <th class="amount">AMOUNT</th>
+                <th class="amount">HARGA</th>
+                <th class="amount">SUBTOTAL</th>
             </tr>
         </thead>
         <tbody>
@@ -299,43 +273,22 @@
             <tr>
                 <td>
                     <div class="product-name">{{ $item->product_name }}</div>
-                    @if($item->product_name == 'Chocolate Fudge Cake')
-                        <div class="product-desc">Rich chocolate cake with fudge icing</div>
-                    @elseif($item->product_name == 'Red Velvet Cake')
-                        <div class="product-desc">Classic red velvet with cream cheese</div>
-                    @elseif($item->product_name == 'Chocolate Chip Cookies')
-                        <div class="product-desc">Classic cookies with chocolate chips (250g)</div>
-                    @elseif($item->product_name == 'Butter Cookies')
-                        <div class="product-desc">Melt-in-your-mouth butter cookies (250g)</div>
-                    @else
-                        <div class="product-desc">{{ Str::limit($item->product_name, 30) }}</div>
-                    @endif
                 </td>
-                <td>Rp {{ number_format($item->product_price, 0) }}</td>
                 <td>{{ $item->quantity }}</td>
+                <td class="amount">Rp {{ number_format($item->product_price, 0) }}</td>
                 <td class="amount">Rp {{ number_format($item->subtotal, 0) }}</td>
             </tr>
             @endforeach
         </tbody>
     </table>
 
-    <div class="qr-section">
-        <div class="qr-code">
-            <div>SCAN<br>TO PAY</div>
-        </div>
-        <div class="qr-text">
-            Scan this code<br>to pay online
-            <strong>sweetcake.com/pay</strong>
-        </div>
-    </div>
-
     <div class="totals">
         <div class="total-row">
-            <span>SUBTOTAL</span>
+            <span>Subtotal</span>
             <span>Rp {{ number_format($order->total, 0) }}</span>
         </div>
         <div class="total-row">
-            <span>TAX (10%)</span>
+            <span>Pajak (10%)</span>
             <span>Rp {{ number_format($order->total * 0.1, 0) }}</span>
         </div>
         <div class="grand-total">
@@ -344,15 +297,15 @@
         </div>
     </div>
 
-    <div class="balance-due">
-        <div class="label">BALANCE DUE</div>
-        <div class="amount">Rp {{ number_format($order->total * 1.1, 0) }}</div>
+    <div class="paid-stamp">
+        <div class="label">✓ LUNAS</div>
+        <div class="amount">PAID</div>
     </div>
 
     <div class="footer">
-        <div>Thank you for your order!</div>
-        <div>For questions, contact us at info@sweetcake.com</div>
-        <div style="margin-top: 5px;">{{ $order->order_number }} • {{ $order->created_at->format('Y-m-d') }}</div>
+        <div>Terima kasih telah berbelanja di SweetCake!</div>
+        <div>📞 {{ $company['phone'] ?? '+62 812 3456 7890' }}</div>
+        <div style="margin-top: 5px;">{{ $order->order_number }} • {{ $order->created_at->format('d/m/Y') }}</div>
     </div>
 </body>
 </html>
