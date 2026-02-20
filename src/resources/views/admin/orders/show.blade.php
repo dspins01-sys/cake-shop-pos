@@ -5,15 +5,6 @@
 @section('content')
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h2">Order #{{ $order->order_number }}</h1>
-            <p class="text-muted mb-0">Placed on {{ $order->created_at->format('d M Y H:i') }}</p>
-        </div>
-        <a href="{{ route('admin.orders.index') }}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-2"></i>Back to Orders
-        </a>
-    </div>
-    <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h1 class="h2">Order #{{ $order->order_number }}</h1>
         <p class="text-muted mb-0">Placed on {{ $order->created_at->format('d M Y H:i') }}</p>
