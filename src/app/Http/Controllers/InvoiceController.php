@@ -84,4 +84,27 @@ class InvoiceController extends Controller
 
         return view('invoices.print', $data);
     }
+    /**
+ * Thermal invoice untuk ditempel di paket
+ */
+public function thermal(Order $order)
+{
+    // Cek akses (hanya admin)
+    if (auth()->user()->role !== 'admin') {
+        abort(403, 'Unauthorized');
+    }
+
+    $data = [
+        'order' => $order,
+        'items' => $order->items,
+        'company' => [
+            'name' => 'SweetCake Bakery',
+            'address' => 'Jl. Contoh No. 123, Jakarta',
+            'phone' => '+62 812 3456 7890',
+            'website' => 'sweetcake.com'
+        ]
+    ];
+
+    return view('invoices.thermal', $data);
+}
 }

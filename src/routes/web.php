@@ -62,7 +62,8 @@ Route::middleware('auth')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/invoice/{order}', [InvoiceController::class, 'view'])->name('invoice.view');
     Route::get('/invoice/{order}/download', [InvoiceController::class, 'download'])->name('invoice.download');
-    Route::get('/invoice/{order}/print', [InvoiceController::class, 'print'])->name('invoice.print'); // <-- TAMBAH INI
+    Route::get('/invoice/{order}/print', [InvoiceController::class, 'print'])->name('invoice.print'); 
+    Route::get('/invoice/{order}/thermal', [InvoiceController::class, 'thermal'])->name('invoice.thermal');
 });
 
 require __DIR__.'/auth.php';

@@ -9,9 +9,12 @@
         <h1 class="h2">Order #{{ $order->order_number }}</h1>
         <p class="text-muted mb-0">Placed on {{ $order->created_at->format('d M Y H:i') }}</p>
     </div>
-    <div>
-        <a href="{{ route('invoice.print', $order) }}" target="_blank" class="btn btn-info me-2">
-            <i class="fas fa-print"></i> Print Invoice
+    <div class="btn-group me-2">
+        <a href="{{ route('invoice.print', $order) }}" target="_blank" class="btn btn-info">
+            <i class="fas fa-print"></i> Print A4
+        </a>
+        <a href="{{ route('invoice.thermal', $order) }}" target="_blank" class="btn btn-secondary">
+            <i class="fas fa-receipt"></i> Thermal (Struk)
         </a>
         <a href="{{ route('admin.orders.index') }}" class="btn btn-outline-secondary">
             <i class="fas fa-arrow-left"></i> Back
