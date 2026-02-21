@@ -20,6 +20,6 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         //
-         //URL::forceRootUrl(config('app.url'));
+         URL::forceRootUrl(config('app.url'));
     }
 }
