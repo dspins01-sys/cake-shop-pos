@@ -110,8 +110,7 @@ public function checkout()
         foreach ($stockIssues as $issue) {
             $message .= " • {$issue['name']}: kamu minta {$issue['requested']}, tersisa {$issue['available']}";
         }
-         // Debug: log ke file
-        \Log::info('Stock Issues:', $stockIssues);
+        
         return redirect()->route('cart.index')
             ->with('warning', $message)
             ->with('stock_issues', $stockIssues);
