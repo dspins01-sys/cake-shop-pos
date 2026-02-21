@@ -53,7 +53,7 @@ class OrderController extends Controller
         $customerMessage .= "🏦 Mandiri: 9876543210 a.n. SweetCake\n\n";
         $customerMessage .= "📤 *UPLOAD BUKTI*\n";
         $customerMessage .= "Upload bukti transfer di:\n";
-        $customerMessage .= route('order.success', $order) . "\n\n";
+        $customerMessage .= route('order.short', $order) . "\n\n";
         $customerMessage .= "Konfirmasi pembayaran maks 1x24 jam.\n";
         $customerMessage .= "Terima kasih! 🙏";
 
@@ -268,23 +268,5 @@ class OrderController extends Controller
 
     // ============ ADMIN METHODS ============
 
-    /**
-     * Confirm payment (admin only)
-     */
-   
-    /**
-     * Mark order as completed (admin only)
-     */
-
-    /**
-     * Cancel order (admin only)
-     */
-   /**
- * Cancel order (admin only) - KEMBALIKAN STOK
- */
-
-    /**
- * Process order (admin only)
- */
 
 }

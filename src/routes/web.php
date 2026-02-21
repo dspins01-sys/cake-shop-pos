@@ -65,5 +65,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/invoice/{order}/print', [InvoiceController::class, 'print'])->name('invoice.print'); 
     Route::get('/invoice/{order}/thermal', [InvoiceController::class, 'thermal'])->name('invoice.thermal');
 });
+// Short URL untuk order tracking
+Route::get('/o/{order}', function ($order) {
+    // Cek apakah order ada
+    $order = App\Models\Order::find($order);
+    if (!$order) {
+        abort(404);
+    }
+    return redirect()->route('order.success', $order);
+})->name('order.short');
 
 require __DIR__.'/auth.php';
