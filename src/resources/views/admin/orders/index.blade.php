@@ -6,19 +6,7 @@
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="h2">Manage Orders</h1>
-    
-    
-</div>
-
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
-
-    <div class="card">
-        @php
+    @php
         $hasProcessed = $orders->whereIn('status', ['processing', 'completed'])->count() > 0 
             || $orders->where('payment_status', 'paid')->count() > 0;
     @endphp
@@ -32,6 +20,16 @@
             </button>
         </form>
     @endif
+</div>
+
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
+    <div class="card">
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-hover">
