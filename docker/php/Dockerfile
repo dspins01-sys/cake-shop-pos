@@ -33,7 +33,9 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Set working directory
 WORKDIR /var/www/html
-
+# Fix untuk psysh (tinker)
+RUN mkdir -p /.config/psysh && chmod 777 /.config/psysh
+ENV HOME=/var/www/html
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html

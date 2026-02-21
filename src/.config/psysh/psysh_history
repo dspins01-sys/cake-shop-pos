@@ -5,3 +5,14 @@ App\Models\User::create([
     'role' => 'admin'
 ]);
 exit
+$wa = app(\App\Services\NodeWhatsAppService::class);
+$wa->send('081399427046', 'Test dari Laravel via WA Service! 🎂');
+exit;
+exit
+curl -X POST http://localhost:3000/send \
+  -H "Content-Type: application/json" \
+  -d '{
+    "phone": "6281399427046",
+    "message": "Test langsung dari WA Service!"
+  }'
+exit

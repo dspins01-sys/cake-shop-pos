@@ -1,0 +1,17 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Order;
+use Illuminate\Http\Request;
+
+class OrderController extends Controller
+{
+    /**
+     * Show order success page
+     */
+    public function success(Order $order)
+    {
+        return view('orders.success', compact('order'));
+    }
+}

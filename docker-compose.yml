@@ -13,6 +13,19 @@ services:
       - mysql
     networks:
       - cake-network
+  
+  wa-service:
+    build: ./wa-service
+    container_name: cake-wa
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./wa-service:/app
+      - /app/node_modules
+      - wa-session:/app/.wwebjs_auth
+    networks:
+      - cake-network
+    restart: unless-stopped
 
   # PHP-FPM
   php:
@@ -63,6 +76,7 @@ services:
 
 volumes:
   mysql_data:
+  wa-session:
 
 networks:
   cake-network:
