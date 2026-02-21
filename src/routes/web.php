@@ -22,28 +22,36 @@ Route::prefix('cart')->name('cart.')->group(function () {
     Route::post('/checkout/process', [App\Http\Controllers\CartController::class, 'process'])->name('checkout.process');
 });
 
-// Order success page (public - DI LUAR GROUP CART)
-Route::get('/order/success/{order}', [App\Http\Controllers\OrderController::class, 'success'])->name('order.success');
-// Order tracking (public)
+// ============= ORDER ROUTES =============
+// Setelah checkout - KIRIM WA (sekali)
+Route::get('/order/success/{order}', [App\Http\Controllers\OrderController::class, 'checkoutSuccess'])->name('order.success');
+
+// Halaman upload bukti - TANPA WA
+Route::get('/order/upload/{order}', [App\Http\Controllers\OrderController::class, 'uploadPage'])->name('order.upload');
+
+// Short link - TANPA WA
+Route::get('/o/{order}', [App\Http\Controllers\OrderController::class, 'uploadPage'])->name('order.short');
+
+// Upload proof action
+Route::post('/order/upload-proof/{order}', [App\Http\Controllers\OrderController::class, 'uploadProof'])->name('order.upload-proof');
+
+// Tracking
 Route::get('/track', [App\Http\Controllers\OrderController::class, 'trackForm'])->name('order.track.form');
 Route::post('/track', [App\Http\Controllers\OrderController::class, 'track'])->name('order.track');
 
-// Order upload proof (public - butuh email buat verifikasi)
-Route::post('/order/upload-proof/{order}', [App\Http\Controllers\OrderController::class, 'uploadProof'])->name('order.upload-proof');
-Route::delete('/orders/{order}', [App\Http\Controllers\OrderController::class, 'destroy'])->name('admin.orders.destroy');
-Route::post('/orders/clear-all', [App\Http\Controllers\OrderController::class, 'clearAll'])->name('admin.orders.clear-all');
-
-// Admin order management
+// ============= ADMIN ORDER MANAGEMENT =============
 Route::prefix('admin/orders')->name('admin.orders.')->middleware(['auth', 'admin'])->group(function () {
     Route::get('/', [App\Http\Controllers\OrderController::class, 'index'])->name('index');
     Route::get('/{order}', [App\Http\Controllers\OrderController::class, 'show'])->name('show');
     Route::post('/{order}/confirm-payment', [App\Http\Controllers\OrderController::class, 'confirmPayment'])->name('confirm-payment');
-    Route::post('/{order}/process', [App\Http\Controllers\OrderController::class, 'processOrder'])->name('process'); // <-- TAMBAH INI
+    Route::post('/{order}/process', [App\Http\Controllers\OrderController::class, 'processOrder'])->name('process');
     Route::post('/{order}/complete', [App\Http\Controllers\OrderController::class, 'complete'])->name('complete');
     Route::post('/{order}/cancel', [App\Http\Controllers\OrderController::class, 'cancel'])->name('cancel');
+    Route::delete('/{order}', [App\Http\Controllers\OrderController::class, 'destroy'])->name('destroy');
+    Route::post('/clear-all', [App\Http\Controllers\OrderController::class, 'clearAll'])->name('clear-all');
 });
 
-// Admin routes
+// ============= ADMIN PRODUCTS =============
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
     Route::resource('products', App\Http\Controllers\Admin\ProductController::class);
 });
@@ -67,14 +75,5 @@ Route::middleware('auth')->group(function () {
     Route::get('/invoice/{order}/print', [InvoiceController::class, 'print'])->name('invoice.print'); 
     Route::get('/invoice/{order}/thermal', [InvoiceController::class, 'thermal'])->name('invoice.thermal');
 });
-// Short URL untuk order tracking
-Route::get('/o/{order}', function ($order) {
-    // Cek apakah order ada
-    $order = App\Models\Order::find($order);
-    if (!$order) {
-        abort(404);
-    }
-    return redirect()->route('order.success', $order);
-})->name('order.short');
 
 require __DIR__.'/auth.php';

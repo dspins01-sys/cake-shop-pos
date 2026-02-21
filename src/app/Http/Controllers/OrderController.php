@@ -10,10 +10,12 @@ use Illuminate\Http\Request;
 class OrderController extends Controller
 {
     protected $whatsapp;
-     public function __construct(NodeWhatsAppService $whatsapp)
+    
+    public function __construct(NodeWhatsAppService $whatsapp)
     {
         $this->whatsapp = $whatsapp;
     }
+    
     /**
      * Display a listing of the orders (for admin)
      */
@@ -32,12 +34,17 @@ class OrderController extends Controller
     }
 
     /**
-     * Show order success page (for customer after checkout)
+     * Tampilkan halaman upload bukti (TANPA KIRIM WA)
      */
-     /**
-     * Order success (setelah checkout)
+    public function uploadPage(Order $order)
+    {
+        return view('orders.success', compact('order'));
+    }
+
+    /**
+     * Proses setelah checkout (kirim WA ke customer & admin) - SEKALI AJA!
      */
-    public function success(Order $order)
+    public function checkoutSuccess(Order $order)
     {
         // 1. WA KE CUSTOMER - Order Diterima
         $customerMessage = "🍰 *SweetCake Bakery*\n\n";
@@ -70,7 +77,8 @@ class OrderController extends Controller
 
         $this->whatsapp->send(env('ADMIN_WHATSAPP'), $adminMessage);
 
-        return view('orders.success', compact('order'));
+        // Redirect ke halaman upload (tanpa kirim WA lagi)
+        return redirect()->route('order.upload', $order);
     }
 
     /**
@@ -96,14 +104,15 @@ class OrderController extends Controller
             $adminMessage .= "No. Order: {$order->order_number}\n";
             $adminMessage .= "Customer: {$order->customer_name}\n";
             $adminMessage .= "Total: Rp " . number_format($order->total, 0, ',', '.') . "\n\n";
+            $adminMessage .= "💰 *Status: Menunggu Konfirmasi*\n\n";
             $adminMessage .= "🔗 Lihat Bukti:\n";
             $adminMessage .= asset('storage/' . $path) . "\n\n";
-            $adminMessage .= "🔗 Proses Order:\n" . route('orders.show', $order);
+            $adminMessage .= "🔗 Proses Order:\n" . route('admin.orders.show', $order);
 
             $this->whatsapp->send(env('ADMIN_WHATSAPP'), $adminMessage);
         }
 
-        return redirect()->route('order.success', $order)
+        return redirect()->route('order.upload', $order)
             ->with('success', 'Bukti transfer berhasil diupload!');
     }
 
@@ -236,7 +245,6 @@ class OrderController extends Controller
             ->with('success', 'Order cancelled.');
     }
 
-
     /**
      * Track order by order number and email (for guest)
      */
@@ -265,49 +273,48 @@ class OrderController extends Controller
     {
         return view('orders.track-form');
     }
-/**
- * Delete order (admin only) - HATI-HATI!
- */
-public function destroy(Order $order)
-{
-    // Cek apakah order bisa dihapus
-    if ($order->payment_status == 'paid' || $order->status == 'processing' || $order->status == 'completed') {
-        return back()->with('error', 'Tidak bisa menghapus order yang sudah diproses!');
+
+    /**
+     * Delete order (admin only) - HATI-HATI!
+     */
+    public function destroy(Order $order)
+    {
+        // Cek apakah order bisa dihapus
+        if ($order->payment_status == 'paid' || $order->status == 'processing' || $order->status == 'completed') {
+            return back()->with('error', 'Tidak bisa menghapus order yang sudah diproses!');
+        }
+
+        // Hapus order items dulu (karena foreign key)
+        $order->items()->delete();
+        
+        // Hapus order
+        $order->delete();
+
+        return redirect()->route('admin.orders.index')
+            ->with('success', 'Order berhasil dihapus!');
     }
 
-    // Hapus order items dulu (karena foreign key)
-    $order->items()->delete();
-    
-    // Hapus order
-    $order->delete();
+    /**
+     * Delete all orders (admin only) - SUPER HATI-HATI!
+     */
+    public function clearAll()
+    {
+        // Cek dulu apakah ada order yang sudah diproses
+        $processedOrders = Order::whereIn('status', ['processing', 'completed'])
+            ->orWhere('payment_status', 'paid')
+            ->count();
+        
+        if ($processedOrders > 0) {
+            return back()->with('error', 'Tidak bisa hapus semua! Masih ada order yang sudah diproses.');
+        }
 
-    return redirect()->route('admin.orders.index')
-        ->with('success', 'Order berhasil dihapus!');
-}
-/**
- * Delete all orders (admin only) - SUPER HATI-HATI!
- */
-public function clearAll()
-{
-    // Cek dulu apakah ada order yang sudah diproses
-    $processedOrders = Order::whereIn('status', ['processing', 'completed'])
-        ->orWhere('payment_status', 'paid')
-        ->count();
-    
-    if ($processedOrders > 0) {
-        return back()->with('error', 'Tidak bisa hapus semua! Masih ada order yang sudah diproses.');
+        // Hapus semua order items dulu
+        \DB::table('order_items')->delete();
+        
+        // Hapus semua orders
+        \DB::table('orders')->delete();
+
+        return redirect()->route('admin.orders.index')
+            ->with('success', 'Semua order berhasil dihapus!');
     }
-
-    // Hapus semua order items dulu
-    \DB::table('order_items')->delete();
-    
-    // Hapus semua orders
-    \DB::table('orders')->delete();
-
-    return redirect()->route('admin.orders.index')
-        ->with('success', 'Semua order berhasil dihapus!');
-}
-    // ============ ADMIN METHODS ============
-
-
 }
