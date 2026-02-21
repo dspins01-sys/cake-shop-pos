@@ -66,7 +66,7 @@ class OrderController extends Controller
         $adminMessage .= "Customer: {$order->customer_name}\n";
         $adminMessage .= "Total: Rp " . number_format($order->total, 0, ',', '.') . "\n";
         $adminMessage .= "Status: Menunggu Pembayaran\n\n";
-        $adminMessage .= "🔗 Link: " . route('order.short', $order);
+        $adminMessage .= "🔗 Link: " . route('admin.orders.show', $order);
 
         $this->whatsapp->send(env('ADMIN_WHATSAPP'), $adminMessage);
 
@@ -98,7 +98,7 @@ class OrderController extends Controller
             $adminMessage .= "Total: Rp " . number_format($order->total, 0, ',', '.') . "\n\n";
             $adminMessage .= "🔗 Lihat Bukti:\n";
             $adminMessage .= asset('storage/' . $path) . "\n\n";
-            $adminMessage .= "🔗 Proses Order:\n" . route('order.short', $order);
+            $adminMessage .= "🔗 Proses Order:\n" . route('orders.show', $order);
 
             $this->whatsapp->send(env('ADMIN_WHATSAPP'), $adminMessage);
         }
@@ -146,7 +146,7 @@ class OrderController extends Controller
 
         $this->whatsapp->send($order->customer_phone, $customerMessage);
 
-        return redirect()->route('order.short', $order)
+        return redirect()->route('admin.orders.show', $order)
             ->with('success', 'Payment confirmed! Stok telah diperbarui.');
     }
 
@@ -170,7 +170,7 @@ class OrderController extends Controller
 
         $this->whatsapp->send($order->customer_phone, $customerMessage);
 
-        return redirect()->route('order.short', $order)
+        return redirect()->route('admin.orders.show', $order)
             ->with('success', 'Order is now being processed.');
     }
 
@@ -197,7 +197,7 @@ class OrderController extends Controller
 
         $this->whatsapp->send($order->customer_phone, $customerMessage);
 
-        return redirect()->route('order.short', $order)
+        return redirect()->route('admin.orders.show', $order)
             ->with('success', 'Order completed!');
     }
 
@@ -232,7 +232,7 @@ class OrderController extends Controller
 
         $this->whatsapp->send($order->customer_phone, $customerMessage);
 
-        return redirect()->route('order.short', $order)
+        return redirect()->route('admin.orders.show', $order)
             ->with('success', 'Order cancelled.');
     }
 
