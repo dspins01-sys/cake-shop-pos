@@ -32,6 +32,7 @@ Route::post('/track', [App\Http\Controllers\OrderController::class, 'track'])->n
 Route::post('/order/upload-proof/{order}', [App\Http\Controllers\OrderController::class, 'uploadProof'])->name('order.upload-proof');
 Route::delete('/orders/{order}', [App\Http\Controllers\OrderController::class, 'destroy'])->name('admin.orders.destroy');
 Route::post('/orders/clear-all', [App\Http\Controllers\OrderController::class, 'clearAll'])->name('admin.orders.clear-all');
+
 // Admin order management
 Route::prefix('admin/orders')->name('admin.orders.')->middleware(['auth', 'admin'])->group(function () {
     Route::get('/', [App\Http\Controllers\OrderController::class, 'index'])->name('index');

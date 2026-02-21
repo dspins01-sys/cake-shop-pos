@@ -21,6 +21,7 @@ class Order extends Model
     'paid_at',
     'notes',
     'admin_notes',
+    'expired_at',
     'user_id'
 ];
 

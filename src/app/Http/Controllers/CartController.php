@@ -174,6 +174,7 @@ $order = \App\Models\Order::create([
     'customer_phone' => $request->customer_phone,
     'address' => $request->address,
     'total' => $total,
+    'expired_at' => now()->addHours(24), // Batas waktu 24 jam,
     'status' => 'pending',
     'payment_method' => $request->payment_method,
     'payment_status' => 'unpaid',
