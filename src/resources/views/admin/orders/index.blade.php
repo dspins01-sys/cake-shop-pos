@@ -10,7 +10,6 @@
             $hasProcessed = $orders->whereIn('status', ['processing', 'completed'])->count() > 0 
                 || $orders->where('payment_status', 'paid')->count() > 0;
         @endphp
-        
         @if(!$hasProcessed && $orders->total() > 0)
             <form action="{{ route('admin.orders.clear-all') }}" method="POST" 
                 onsubmit="return confirm('⚠️ PERINGATAN!\n\nIni akan menghapus SEMUA order termasuk itemnya!\nData akan hilang permanen.\n\nYakin lanjut?')">
