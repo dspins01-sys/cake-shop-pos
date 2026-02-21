@@ -178,6 +178,16 @@
                                 </button>
                             </form>
                         @endif
+                        @if($order->payment_status != 'paid' && $order->status != 'processing' && $order->status != 'completed')
+                            <form action="{{ route('admin.orders.destroy', $order) }}" method="POST" 
+                                onsubmit="return confirm('Yakin hapus order ini? Data akan hilang permanen!')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-outline-danger w-100 mt-2">
+                                    <i class="fas fa-trash me-2"></i>Hapus Order
+                                </button>
+                            </form>
+                        @endif
                     </div>
                 </div>
             </div>

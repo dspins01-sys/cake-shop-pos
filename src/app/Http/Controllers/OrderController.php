@@ -265,7 +265,48 @@ class OrderController extends Controller
     {
         return view('orders.track-form');
     }
+/**
+ * Delete order (admin only) - HATI-HATI!
+ */
+public function destroy(Order $order)
+{
+    // Cek apakah order bisa dihapus
+    if ($order->payment_status == 'paid' || $order->status == 'processing' || $order->status == 'completed') {
+        return back()->with('error', 'Tidak bisa menghapus order yang sudah diproses!');
+    }
 
+    // Hapus order items dulu (karena foreign key)
+    $order->items()->delete();
+    
+    // Hapus order
+    $order->delete();
+
+    return redirect()->route('admin.orders.index')
+        ->with('success', 'Order berhasil dihapus!');
+}
+/**
+ * Delete all orders (admin only) - SUPER HATI-HATI!
+ */
+public function clearAll()
+{
+    // Cek dulu apakah ada order yang sudah diproses
+    $processedOrders = Order::whereIn('status', ['processing', 'completed'])
+        ->orWhere('payment_status', 'paid')
+        ->count();
+    
+    if ($processedOrders > 0) {
+        return back()->with('error', 'Tidak bisa hapus semua! Masih ada order yang sudah diproses.');
+    }
+
+    // Hapus semua order items dulu
+    \DB::table('order_items')->delete();
+    
+    // Hapus semua orders
+    \DB::table('orders')->delete();
+
+    return redirect()->route('admin.orders.index')
+        ->with('success', 'Semua order berhasil dihapus!');
+}
     // ============ ADMIN METHODS ============
 
 
