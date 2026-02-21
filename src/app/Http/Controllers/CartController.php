@@ -95,13 +95,14 @@ public function checkout()
         $availableStock = $product->available_stock ?? 0;
         
         if ($availableStock < $item['quantity']) {
-            $stockIssues[] = [
-                'name' => $item['name'],
-                'requested' => $item['quantity'],
-                'available' => $availableStock,
-                'max' => $availableStock
-            ];
-        }
+        $stockIssues[] = [
+            'id' => $id,  // <-- PASTIKAN ID ADA!
+            'name' => $item['name'],
+            'requested' => $item['quantity'],
+            'available' => $availableStock,
+            'max' => $availableStock
+        ];
+}
     }
     
     if (!empty($stockIssues)) {
