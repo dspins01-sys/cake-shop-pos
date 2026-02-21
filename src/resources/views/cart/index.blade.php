@@ -19,47 +19,26 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     @endif
-    @if(session('warning'))
-    <div class="alert alert-warning alert-dismissible fade show" role="alert">
-        <strong><i class="fas fa-exclamation-triangle me-2"></i> Perhatian!</strong>
-        <div class="mt-2">
-            {!! nl2br(e(session('warning'))) !!}
-        </div>
-        
-        @if(session('stock_issues'))
-            <div class="mt-3">
-                <button class="btn btn-sm btn-warning" onclick="fixStockIssues()">
-                    <i class="fas fa-magic me-1"></i> Sesuaikan Otomatis
-                </button>
-                <small class="text-muted ms-2">(Quantity akan disesuaikan dengan stok tersedia)</small>
-            </div>
-        @endif
-        
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-@endif
 
-@push('scripts')
-<script>
-function fixStockIssues() {
-    const issues = @json(session('stock_issues', []));
-    
-    issues.forEach(issue => {
-        if (issue.id && issue.available) {
-            // Cari form input untuk produk ini
-            const form = document.querySelector(`form[action*="cart/update/${issue.id}"]`);
-            if (form) {
-                const input = form.querySelector('input[name="quantity"]');
-                if (input) {
-                    input.value = issue.available;
-                    form.submit();
-                }
-            }
-        }
-    });
-}
-</script>
-@endpush
+    @if(session('warning'))
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <strong><i class="fas fa-exclamation-triangle me-2"></i> Perhatian!</strong>
+            <div class="mt-2">
+                {!! nl2br(e(session('warning'))) !!}
+            </div>
+            
+            @if(session('stock_issues'))
+                <div class="mt-3">
+                    <button class="btn btn-sm btn-warning" onclick="fixStockIssues()">
+                        <i class="fas fa-magic me-1"></i> Sesuaikan Otomatis
+                    </button>
+                    <small class="text-muted ms-2">(Quantity akan disesuaikan dengan stok tersedia)</small>
+                </div>
+            @endif
+            
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
 
     @if(empty($cart))
         <div class="text-center py-5">
@@ -78,21 +57,21 @@ function fixStockIssues() {
                         @foreach($cart as $id => $item)
                         <div class="row mb-3 pb-3 border-bottom align-items-center">
                             <div class="col-md-2">
-                            <a href="{{ route('products.show', $item['slug'] ?? '') }}" class="d-block">
-                                <div class="bg-light rounded d-flex align-items-center justify-content-center" 
-                                    style="width: 100px; height: 100px; overflow: hidden; position: relative;">
-                                    @if(isset($item['image']) && $item['image'])
-                                        <img src="{{ asset('storage/' . $item['image']) }}" 
-                                            alt="{{ $item['name'] }}"
-                                            style="width: 100%; height: 100%; object-fit: cover;"
-                                            class="img-fluid"
-                                            onerror="this.style.display='none'; this.parentNode.innerHTML='<i class=\'fas fa-cake-candles fa-2x text-secondary\'></i>';">
-                                    @else
-                                        <i class="fas fa-cake-candles fa-2x text-secondary"></i>
-                                    @endif
-                                </div>
-                            </a>
-                        </div>
+                                <a href="{{ route('products.show', $item['slug'] ?? '') }}" class="d-block">
+                                    <div class="bg-light rounded d-flex align-items-center justify-content-center" 
+                                        style="width: 100px; height: 100px; overflow: hidden; position: relative;">
+                                        @if(isset($item['image']) && $item['image'])
+                                            <img src="{{ asset('storage/' . $item['image']) }}" 
+                                                alt="{{ $item['name'] }}"
+                                                style="width: 100%; height: 100%; object-fit: cover;"
+                                                class="img-fluid"
+                                                onerror="this.style.display='none'; this.parentNode.innerHTML='<i class=\'fas fa-cake-candles fa-2x text-secondary\'></i>';">
+                                        @else
+                                            <i class="fas fa-cake-candles fa-2x text-secondary"></i>
+                                        @endif
+                                    </div>
+                                </a>
+                            </div>
                             <div class="col-md-4">
                                 <h5 class="mb-1">{{ $item['name'] }}</h5>
                                 <p class="text-muted small mb-0">Stock: {{ $item['stock'] ?? 'N/A' }}</p>
@@ -148,7 +127,7 @@ function fixStockIssues() {
                     <div class="card-body">
                         @php
                             $subtotal = $total;
-                            $tax = $subtotal * 0.1; // 10% tax
+                            $tax = $subtotal * 0.1;
                             $grandTotal = $subtotal + $tax;
                         @endphp
 
@@ -176,3 +155,29 @@ function fixStockIssues() {
     @endif
 </div>
 @endsection
+
+@push('scripts')
+<script>
+function fixStockIssues() {
+    const issues = @json(session('stock_issues', []));
+    console.log('Fixing issues:', issues); // Tambahin ini buat debug
+    
+    issues.forEach(issue => {
+        if (issue.id && issue.available) {
+            // Cari form input untuk produk ini
+            const form = document.querySelector(`form[action*="cart/update/${issue.id}"]`);
+            console.log('Found form:', form); // Tambahin ini buat debug
+            
+            if (form) {
+                const input = form.querySelector('input[name="quantity"]');
+                if (input) {
+                    console.log(`Setting quantity for ${issue.name} from ${input.value} to ${issue.available}`);
+                    input.value = issue.available;
+                    form.submit();
+                }
+            }
+        }
+    });
+}
+</script>
+@endpush
