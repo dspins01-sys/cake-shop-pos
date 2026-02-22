@@ -5,23 +5,22 @@
 @section('content')
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h2">Manage Orders</h1>
-    @php
-        $hasProcessed = $orders->whereIn('status', ['processing', 'completed'])->count() > 0 
-            || $orders->where('payment_status', 'paid')->count() > 0;
-    @endphp
-    
-    @if(!$hasProcessed && $orders->total() > 0)
-        <form action="{{ route('admin.orders.clear-all') }}" method="POST" 
-              onsubmit="return confirm('⚠️ PERINGATAN!\n\nIni akan menghapus SEMUA order termasuk itemnya!\nData akan hilang permanen.\n\nYakin lanjut?')">
-            @csrf
-            <button type="submit" class="btn btn-danger">
-                <i class="fas fa-trash-alt me-2"></i>Clear All Orders
-            </button>
-        </form>
-    @endif
-</div>
-<div class="d-flex gap-2">
+        <h1 class="h2">Manage Orders</h1>
+        @php
+            $hasProcessed = $orders->whereIn('status', ['processing', 'completed'])->count() > 0 
+                || $orders->where('payment_status', 'paid')->count() > 0;
+        @endphp
+        
+        @if(!$hasProcessed && $orders->total() > 0)
+            <form action="{{ route('admin.orders.clear-all') }}" method="POST" 
+                onsubmit="return confirm('⚠️ PERINGATAN!\n\nIni akan menghapus SEMUA order termasuk itemnya!\nData akan hilang permanen.\n\nYakin lanjut?')">
+                @csrf
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash-alt me-2"></i>Clear All Orders
+                </button>
+            </form>
+        @endif
+        <div class="d-flex gap-2">
     <form action="{{ route('admin.orders.clear-all-with-restore') }}" method="POST"
           onsubmit="return confirm('⚠️ RESET TOTAL!\n\nStok akan dikembalikan ke awal.\nSemua order akan dihapus.\n\nYakin?')">
         @csrf
@@ -38,6 +37,8 @@
         </button>
     </form>
 </div>
+    </div>
+
 
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show" role="alert">
