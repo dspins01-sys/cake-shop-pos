@@ -49,7 +49,8 @@ Route::prefix('admin/orders')->name('admin.orders.')->middleware(['auth', 'admin
     Route::post('/{order}/cancel', [App\Http\Controllers\OrderController::class, 'cancel'])->name('cancel');
     Route::delete('/{order}', [App\Http\Controllers\OrderController::class, 'destroy'])->name('destroy');
     Route::post('/clear-all', [App\Http\Controllers\OrderController::class, 'clearAll'])->name('clear-all');
-    Route::post('/orders/clear-all-with-restore', [App\Http\Controllers\OrderController::class, 'clearAllWithRestore'])->name('admin.orders.clear-all-with-restore');
+    // PERBAIKAN INI:
+    Route::post('/clear-all-with-restore', [App\Http\Controllers\OrderController::class, 'clearAllWithRestore'])->name('clear-all-with-restore');
 });
 
 // ============= ADMIN PRODUCTS =============
