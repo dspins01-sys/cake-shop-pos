@@ -317,4 +317,34 @@ class OrderController extends Controller
         return redirect()->route('admin.orders.index')
             ->with('success', 'Semua order berhasil dihapus!');
     }
+    /**
+ * Clear all orders WITH restoring stock (untuk testing/reset total)
+ */
+public function clearAllWithRestore()
+{
+    // 1. Kembalikan stok untuk order yang sudah mengurangi stok
+    $orders = Order::whereIn('payment_status', ['paid', 'waiting_confirmation'])
+        ->whereIn('status', ['processing', 'completed', 'paid'])
+        ->get();
+    
+    $restoredCount = 0;
+    foreach ($orders as $order) {
+        foreach ($order->items as $item) {
+            $product = Product::find($item->product_id);
+            if ($product) {
+                $product->increment('stock', $item->quantity);
+                $restoredCount++;
+            }
+        }
+    }
+
+    // 2. Hapus semua order items
+    \DB::table('order_items')->delete();
+    
+    // 3. Hapus semua orders
+    \DB::table('orders')->delete();
+
+    return redirect()->route('admin.orders.index')
+        ->with('success', "Reset total! $restoredCount item stok dikembalikan. Semua order dihapus.");
+}
 }

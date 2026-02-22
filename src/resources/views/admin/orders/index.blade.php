@@ -21,6 +21,23 @@
         </form>
     @endif
 </div>
+<div class="d-flex gap-2">
+    <form action="{{ route('admin.orders.clear-all-with-restore') }}" method="POST"
+          onsubmit="return confirm('⚠️ RESET TOTAL!\n\nStok akan dikembalikan ke awal.\nSemua order akan dihapus.\n\nYakin?')">
+        @csrf
+        <button type="submit" class="btn btn-danger">
+            <i class="fas fa-undo-alt me-2"></i>Reset Total (Testing)
+        </button>
+    </form>
+    
+    <form action="{{ route('admin.orders.clear-all') }}" method="POST"
+          onsubmit="return confirm('Hapus semua order? Stok TIDAK dikembalikan.')">
+        @csrf
+        <button type="submit" class="btn btn-warning">
+            <i class="fas fa-trash-alt me-2"></i>Cleanup (No Restore)
+        </button>
+    </form>
+</div>
 
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show" role="alert">
