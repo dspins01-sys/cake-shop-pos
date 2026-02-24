@@ -63,45 +63,60 @@ class InvoiceController extends Controller
     /**
      * Print invoice langsung (untuk pengiriman)
      */
-    public function print(Order $order)
-    {
-        // Cek akses (hanya admin)
-        if (auth()->user()->role !== 'admin') {
-            abort(403, 'Unauthorized');
-        }
-
-        $data = [
-            'order' => $order,
-            'items' => $order->items,
-            'company' => [
-                'name' => 'SweetCake Bakery',
-                'address' => 'Jl. Contoh No. 123, Jakarta',
-                'phone' => '+62 812 3456 7890',
-                'email' => 'info@sweetcake.com',
-                'website' => 'www.sweetcake.com'
-            ]
-        ];
-
-        return view('invoices.print', $data);
-    }
-    /**
- * Thermal invoice untuk ditempel di paket
+   /**
+ * Print invoice (hanya untuk admin)
  */
-public function thermal(Order $order)
+public function print(Order $order)
 {
-    // Cek akses (hanya admin)
+    // Cek akses admin
     if (auth()->user()->role !== 'admin') {
         abort(403, 'Unauthorized');
+    }
+    
+    // CEK STATUS PAID
+    if ($order->payment_status !== 'paid') {
+        return redirect()->back()->with('error', 'Invoice hanya bisa dicetak setelah pembayaran lunas!');
     }
 
     $data = [
         'order' => $order,
         'items' => $order->items,
         'company' => [
-            'name' => 'SweetCake Bakery',
+            'name' => 'CremenCrumb',
             'address' => 'Jl. Contoh No. 123, Jakarta',
             'phone' => '+62 812 3456 7890',
-            'website' => 'sweetcake.com'
+            'website' => 'cremencrumb.com'
+        ]
+    ];
+
+    return view('invoices.print', $data);
+}
+
+/**
+ * Thermal invoice (hanya untuk admin)
+ */
+public function thermal(Order $order)
+{
+    // Cek akses admin
+    if (auth()->user()->role !== 'admin') {
+        abort(403, 'Unauthorized');
+    }
+    
+    // CEK STATUS PAID
+    if ($order->payment_status !== 'paid') {
+        return redirect()->back()->with('error', 'Invoice thermal hanya bisa dicetak setelah pembayaran lunas!');
+    }
+
+    $order = Order::with('items')->find($order->id);
+    
+    $data = [
+        'order' => $order,
+        'items' => $order->items,
+        'company' => [
+            'name' => 'CremenCrumb',
+            'address' => 'Jl. Baking District No. 123, Jakarta',
+            'phone' => '+62 812 3456 7890',
+            'website' => 'cremencrumb.com'
         ]
     ];
 

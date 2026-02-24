@@ -9,6 +9,8 @@
         <h1 class="h2">Order #{{ $order->order_number }}</h1>
         <p class="text-muted mb-0">Placed on {{ $order->created_at->format('d M Y H:i') }}</p>
     </div>
+
+@if($order->payment_status == 'paid')
     <div class="btn-group me-2">
         <a href="{{ route('invoice.print', $order) }}" target="_blank" class="btn btn-info">
             <i class="fas fa-print"></i> Print A4
@@ -20,6 +22,9 @@
             <i class="fas fa-arrow-left"></i> Back
         </a>
     </div>
+    @else
+    <span class="text-muted">Invoice dapat dicetak setelah pembayaran lunas</span>
+@endif
 </div>
 
     @if(session('success'))
