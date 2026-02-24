@@ -110,7 +110,7 @@
                                              alt="BCA" style="height: 30px; margin-bottom: 10px;">
                                         <p class="mb-1"><strong>Bank BCA</strong></p>
                                         <p class="mb-1">Account No: <strong class="text-primary">1234567890</strong></p>
-                                        <p class="mb-0">Account Name: <strong>SweetCake Bakery</strong></p>
+                                        <p class="mb-0">Account Name: <strong>Creme&Crumb Bakery</strong></p>
                                     </div>
                                 </div>
                                 <div class="col-md-6 mb-3">
@@ -119,7 +119,7 @@
                                              alt="Mandiri" style="height: 30px; margin-bottom: 10px;">
                                         <p class="mb-1"><strong>Bank Mandiri</strong></p>
                                         <p class="mb-1">Account No: <strong class="text-primary">9876543210</strong></p>
-                                        <p class="mb-0">Account Name: <strong>SweetCake Bakery</strong></p>
+                                        <p class="mb-0">Account Name: <strong>Creme&Crumb Bakery</strong></p>
                                     </div>
                                 </div>
                             </div>
