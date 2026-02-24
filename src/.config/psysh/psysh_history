@@ -16,3 +16,59 @@ curl -X POST http://localhost:3000/send \
     "message": "Test langsung dari WA Service!"
   }'
 exit
+$wa = app(\App\Services\NodeWhatsAppService::class);
+$result = $wa->send('6281399427046', 'Test manual dari tinker');
+var_dump($result);
+exit;
+$wa = app(\App\Services\NodeWhatsAppService::class);
+$wa->send('6281399427046', 'Test notifikasi setelah fix IP!');
+exit;
+$wa = app(\App\Services\NodeWhatsAppService::class);
+$wa->send('6281399427046', 'Test setelah fix network!');
+exit;
+echo route('order.short', 1);
+exit;
+$wa = app(\App\Services\NodeWhatsAppService::class);
+$message = "Test link: " . route('order.short', 1);
+$wa->send('6281399427046', $message);
+exit;
+$order = App\Models\Order::latest()->first();
+$order->expired_at = now()->subHours(25); // 25 jam yang lalu
+$order->save();
+echo "Order #{$order->order_number} expired_at diubah ke masa lalu";
+exit;
+echo route('order.short', 1);
+exit;
+echo env('APP_URL');
+echo config('app.url');
+exit;
+exit
+$order = App\Models\Order::find(25);
+echo "Order #{$order->order_number}\n";
+echo "Status: {$order->status}\n";
+echo "Payment: {$order->payment_status}\n";
+echo "Expired at: {$order->expired_at}\n";
+echo "Now: " . now() . "\n";
+echo "Is expired? " . ($order->expired_at < now() ? 'YES' : 'NO') . "\n";
+exit;
+$order = App\Models\Order::find(25);
+echo "Order #{$order->order_number}\n";
+echo "Status: {$order->status}\n";
+echo "Payment: {$order->payment_status}\n";
+echo "Expired at: {$order->expired_at}\n";
+echo "Now: " . now() . "\n";
+echo "Is expired? " . ($order->expired_at < now() ? 'YES' : 'NO') . "\n";
+exit;
+$order = App\Models\Order::find(25);
+// Ubah expired_at dari UTC ke WIB (tambah 7 jam)
+$order->expired_at = '2026-02-22 23:55:14'; // 16:55 UTC +7 = 23:55 WIB
+$order->save();
+echo "Expired_at diupdate ke: {$order->expired_at}\n";
+exit;
+$order = App\Models\Order::find(25);
+$order->update([
+    'status' => 'cancelled',
+    'payment_status' => 'expired'
+]);
+echo "Order #{$order->order_number} cancelled\n";
+exit;
