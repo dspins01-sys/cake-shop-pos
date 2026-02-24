@@ -297,9 +297,16 @@
         </div>
     </div>
 
-    <div class="paid-stamp">
-        <div class="label">✓ LUNAS</div>
-        <div class="amount">PAID</div>
+    @php
+    $statusColor = $order->payment_status == 'paid' ? '#22c55e' : 
+                   ($order->payment_status == 'waiting_confirmation' ? '#f97316' : '#ef4444');
+    $statusLabel = $order->payment_status == 'paid' ? 'LUNAS' : 
+                   ($order->payment_status == 'waiting_confirmation' ? 'MENUNGGU' : 'BELUM BAYAR');
+    @endphp
+
+    <div class="paid-stamp" style="background: {{ $statusColor }};">
+        <div class="label">{{ $statusLabel }}</div>
+        <div class="amount">{{ strtoupper($order->payment_status) }}</div>
     </div>
 
     <div class="footer">
