@@ -42,8 +42,10 @@
             }
             .logo-emboss {
                 filter:
-                    drop-shadow(1px 1px 0 rgba(255,255,255,0.15))
-                    drop-shadow(-1px -1px 0 rgba(0,0,0,0.6));
+                    brightness(1.2)
+                    contrast(1.1)
+                    drop-shadow(0 0 4px rgba(255, 200, 120, 0.4))
+                    drop-shadow(1px 2px 3px rgba(0,0,0,0.6));
             }
 
         /* Navbar mobile styles */
