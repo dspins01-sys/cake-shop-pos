@@ -36,7 +36,7 @@
         }
          /* Logo size - berlaku untuk semua layar */
             .logo-img {
-                height: 90px;
+                height: 120px;
                 width: auto;
                 object-fit: contain;
             }
