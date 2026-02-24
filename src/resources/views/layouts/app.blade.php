@@ -60,16 +60,22 @@
                 background: rgba(255,255,255,0.1);
                 color: white;
             }
+           /* Logo size - berlaku untuk semua layar */
             .logo-img {
                 height: 50px;
                 width: auto;
                 object-fit: contain;
             }
 
+            /* Versi mobile lebih kecil */
             @media (max-width: 768px) {
                 .logo-img {
                     height: 38px;
                 }
+            }
+            .navbar {
+                padding-top: 0.5rem;
+                padding-bottom: 0.5rem;
             }
             }
     </style>
