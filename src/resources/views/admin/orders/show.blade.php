@@ -18,11 +18,11 @@
         <a href="{{ route('invoice.thermal', $order) }}" target="_blank" class="btn btn-info">
             <i class="fas fa-receipt"></i> Thermal (Struk)
         </a>
-        <a href="{{ route('admin.orders.index') }}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left"></i> Back
-        </a>
     </div>
     @else
+    <a href="{{ route('admin.orders.index') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
     <span class="text-muted">Invoice dapat dicetak setelah pembayaran lunas</span>
 @endif
 </div>
