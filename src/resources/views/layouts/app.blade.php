@@ -40,6 +40,11 @@
                 width: auto;
                 object-fit: contain;
             }
+            .logo-emboss {
+                filter:
+                    drop-shadow(1px 1px 0 rgba(255,255,255,0.15))
+                    drop-shadow(-1px -1px 0 rgba(0,0,0,0.6));
+            }
 
         /* Navbar mobile styles */
         @media (max-width: 991.98px) {
@@ -86,7 +91,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
             <a class="navbar-brand" href="{{ route('home') }}">
-                <img src="{{ asset('images/logo.png') }}" alt="Creme&Crumb" class="logo-img">
+                <img src="{{ asset('images/logo.png') }}" alt="Creme&Crumb" class="logo-img logo-emboss" >
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
