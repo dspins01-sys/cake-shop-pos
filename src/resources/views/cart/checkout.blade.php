@@ -118,7 +118,7 @@
                                         <img src="https://upload.wikimedia.org/wikipedia/commons/a/ad/Bank_Mandiri_logo_2016.svg" 
                                              alt="Mandiri" style="height: 30px; margin-bottom: 10px;">
                                         <p class="mb-1"><strong>Bank Mandiri</strong></p>
-                                        <p class="mb-1">Account No: <strong class="text-primary">9876543210</strong></p>
+                                        <p class="mb-1">Account No: <strong class="text-primary">12345678910</strong></p>
                                         <p class="mb-0">Account Name: <strong>Creme&Crumb Bakery</strong></p>
                                     </div>
                                 </div>
