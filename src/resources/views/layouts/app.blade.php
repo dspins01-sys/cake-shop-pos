@@ -79,7 +79,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
             <a class="navbar-brand" href="{{ route('home') }}">
-                <img src="{{ asset('images/logo.png') }}" alt="Creme&Crumb" class="logo-img">
+                <img src="{{ asset('images/logo.jpg') }}" alt="Creme&Crumb" class="logo-img">
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
