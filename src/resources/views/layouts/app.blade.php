@@ -68,7 +68,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
             <a class="navbar-brand" href="{{ route('home') }}">
-    <img src="{{ asset('images/logo.jpg') }}" alt="CremenCrumb" height="40" class="d-inline-block align-text-top me-2" style="height: 40px; width: auto;">
+    <img src="{{ asset('images/logo.png') }}" alt="CremenCrumb" height="40" class="d-inline-block align-text-top me-2" style="height: 40px; width: auto;">
     Creme&Crumb
 </a>
             
