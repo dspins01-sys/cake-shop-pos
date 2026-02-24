@@ -34,6 +34,12 @@
             color: white;
             border-color: #ff6b6b;
         }
+         /* Logo size - berlaku untuk semua layar */
+            .logo-img {
+                height: 50px;
+                width: auto;
+                object-fit: contain;
+            }
 
         /* Navbar mobile styles */
         @media (max-width: 991.98px) {
@@ -60,12 +66,7 @@
                 background: rgba(255,255,255,0.1);
                 color: white;
             }
-           /* Logo size - berlaku untuk semua layar */
-            .logo-img {
-                height: 50px;
-                width: auto;
-                object-fit: contain;
-            }
+          
 
             /* Versi mobile lebih kecil */
             @media (max-width: 768px) {
