@@ -60,7 +60,18 @@
                 background: rgba(255,255,255,0.1);
                 color: white;
             }
-        }
+            .logo-img {
+                height: 50px;
+                width: auto;
+                object-fit: contain;
+            }
+
+            @media (max-width: 768px) {
+                .logo-img {
+                    height: 38px;
+                }
+            }
+            }
     </style>
 </head>
 <body>
@@ -68,7 +79,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
             <a class="navbar-brand" href="{{ route('home') }}">
-                <img src="{{ asset('images/logo.png') }}" alt="Creme&Crumb" height="50">
+                <img src="{{ asset('images/logo.png') }}" alt="Creme&Crumb" class="logo-img">
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
