@@ -48,7 +48,7 @@
             }
             .nav-item {
                 padding: 0.5rem 0;
-                border-bottom: 1px solid rgba(255,255,255,0.1);
+                border-bottom: 1px solid rgba(7, 7, 7, 0.1);
             }
             .nav-item:last-child {
                 border-bottom: none;
