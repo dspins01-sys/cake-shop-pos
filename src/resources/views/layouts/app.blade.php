@@ -68,8 +68,9 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
             <a class="navbar-brand" href="{{ route('home') }}">
-                <i class="fas fa-cake-candles"></i> Creme&Crumb
-            </a>
+    <img src="{{ asset('images/logo.png') }}" alt="CremenCrumb" height="40" class="d-inline-block align-text-top me-2" style="height: 40px; width: auto;">
+    Creme&Crumb
+</a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
