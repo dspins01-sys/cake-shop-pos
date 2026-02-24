@@ -68,7 +68,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
             <a class="navbar-brand" href="{{ route('home') }}">
-                <i class="fas fa-cake-candles"></i> SweetCake
+                <i class="fas fa-cake-candles"></i> CremenCrumb
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">

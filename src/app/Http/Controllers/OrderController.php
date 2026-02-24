@@ -47,17 +47,17 @@ class OrderController extends Controller
     public function checkoutSuccess(Order $order)
     {
         // 1. WA KE CUSTOMER - Order Diterima
-        $customerMessage = "🍰 *SweetCake Bakery*\n\n";
+        $customerMessage = "🍰 *CremenCrumb Bakery*\n\n";
         $customerMessage .= "Halo *{$order->customer_name}*,\n";
-        $customerMessage .= "Terima kasih telah order di SweetCake!\n\n";
+        $customerMessage .= "Terima kasih telah order di CremenCrumb!\n\n";
         $customerMessage .= "📋 *DETAIL PESANAN*\n";
         $customerMessage .= "No. Order: {$order->order_number}\n";
         $customerMessage .= "Total: Rp " . number_format($order->total, 0, ',', '.') . "\n";
         $customerMessage .= "Status: Menunggu Pembayaran\n\n";
         $customerMessage .= "💳 *INSTRUKSI PEMBAYARAN*\n";
         $customerMessage .= "Transfer ke:\n";
-        $customerMessage .= "🏦 BCA: 1234567890 a.n. SweetCake\n";
-        $customerMessage .= "🏦 Mandiri: 9876543210 a.n. SweetCake\n\n";
+        $customerMessage .= "🏦 BCA: 1234567890 a.n. CremenCrumb\n";
+        $customerMessage .= "🏦 Mandiri: 9876543210 a.n. CremenCrumb\n\n";
         $customerMessage .= "📤 *UPLOAD BUKTI*\n";
         $customerMessage .= "Upload bukti transfer di:\n";
         $customerMessage .= route('order.short', $order) . "\n\n";
@@ -200,9 +200,9 @@ class OrderController extends Controller
         $customerMessage .= "No. Order: {$order->order_number}\n";
         $customerMessage .= "Total: Rp " . number_format($order->total, 0, ',', '.') . "\n";
         $customerMessage .= "Status: *SELESAI*\n\n";
-        $customerMessage .= "Terima kasih telah berbelanja di SweetCake!\n";
+        $customerMessage .= "Terima kasih telah berbelanja di CremenCrumb!\n";
         $customerMessage .= "Jangan lupa kasih review ya! ⭐⭐⭐⭐⭐\n\n";
-        $customerMessage .= "SweetCake Bakery 🍰";
+        $customerMessage .= "CremenCrumb Bakery 🍰";
 
         $this->whatsapp->send($order->customer_phone, $customerMessage);
 

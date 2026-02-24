@@ -72,8 +72,8 @@
     <div style="margin-top: 20px; padding: 10px; background: #fff3cd; border-left: 4px solid #ffc107;">
         <p><strong>Payment Instructions:</strong></p>
         <p>Transfer total amount to:</p>
-        <p><strong>BCA</strong> - 1234567890 a.n. SweetCake</p>
-        <p><strong>Mandiri</strong> - 9876543210 a.n. SweetCake</p>
+        <p><strong>BCA</strong> - 1234567890 a.n. CremenCrumb</p>
+        <p><strong>Mandiri</strong> - 9876543210 a.n. CremenCrumb</p>
         <p>After payment, please upload proof via your order page.</p>
     </div>
     @endif

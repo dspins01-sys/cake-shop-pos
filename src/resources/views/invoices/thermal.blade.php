@@ -235,11 +235,11 @@
     </button>
 
     <div class="header">
-        <h1>SweetCake</h1>
+        <h1>CremenCrumb</h1>
         <div class="brand">Fresh Baked Daily</div>
         <div class="brand">Jl. Baking District No. 123</div>
         <div class="brand">Jakarta, 12345</div>
-        <div class="brand">sweetcake.com | @sweetcake</div>
+        <div class="brand">CremenCrumb.com | @CremenCrumb</div>
     </div>
 
     <div class="divider"></div>
@@ -303,7 +303,7 @@
     </div>
 
     <div class="footer">
-        <div>Terima kasih telah berbelanja di SweetCake!</div>
+        <div>Terima kasih telah berbelanja di CremenCrumb!</div>
         <div>📞 {{ $company['phone'] ?? '+62 812 3456 7890' }}</div>
         <div style="margin-top: 5px;">{{ $order->order_number }} • {{ $order->created_at->format('d/m/Y') }}</div>
     </div>
