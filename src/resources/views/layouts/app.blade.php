@@ -41,11 +41,12 @@
                 object-fit: contain;
             }
             .logo-emboss {
-                filter:
-                    brightness(1.2)
-                    contrast(1.1)
-                    drop-shadow(0 0 4px rgba(255, 200, 120, 0.4))
-                    drop-shadow(1px 2px 3px rgba(0,0,0,0.6));
+        width: auto;
+        filter:
+            brightness(1.4)
+            contrast(1.1)
+            drop-shadow(0 0 6px rgba(255, 180, 120, 0.45))
+            drop-shadow(0 2px 4px rgba(0,0,0,0.8));
             }
 
         /* Navbar mobile styles */
