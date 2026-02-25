@@ -72,3 +72,29 @@ $order->update([
 ]);
 echo "Order #{$order->order_number} cancelled\n";
 exit;
+exit
+config('queue.default');
+exit
+Redis::set('test', 'Creme&Crumb');
+Redis::get('test');
+php -m | grep redis
+exit
+Redis::set('test', 'Creme&Crumb');
+Redis::get('test');
+use Illuminate\Support\Facades\Redis;
+Redis::set('test', 'Creme&Crumb');
+Redis::get('test');
+exit
+use Illuminate\Support\Facades\Redis;
+Redis::set('test', 'Creme&Crumb');
+Redis::get('test');
+exit
+config('database.redis.default.host');
+exit
+config('database.redis.default.host');
+Redis::set('test', 'Creme&Crumb');
+Redis::get('test');
+use Illuminate\Support\Facades\Redis;
+Redis::set('test', 'Creme&Crumb');
+Redis::get('test');
+exit

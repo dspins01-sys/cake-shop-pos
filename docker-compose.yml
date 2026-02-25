@@ -35,7 +35,7 @@ services:
       context: ./docker/php
       dockerfile: Dockerfile
     container_name: cake-php
-    user: "1002:1002" 
+    user: "1002:1002"
     working_dir: /var/www/html
     volumes:
       - ./src:/var/www/html
@@ -43,7 +43,28 @@ services:
       - mysql
     networks:
       - cake-network
-    # restart: unless-stopped  # optional
+# Redis
+  redis:
+    image: redis:7-alpine
+    container_name: cake-redis
+    ports:
+     - "6379:6379"
+    networks:
+     - cake-network
+    # Horizon
+  horizon:
+    build:
+      context: ./docker/php
+      dockerfile: Dockerfile
+    container_name: cake-horizon
+    command: php artisan horizon
+    depends_on:
+      - redis
+      - mysql
+    volumes:
+      - ./src:/var/www/html
+    networks:
+      - cake-network
 
   # MySQL Database
   mysql:
