@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Order;
 use App\Services\NodeWhatsAppService;
 use Illuminate\Console\Command;
+use App\Jobs\SendExpiredOrderWhatsApp;
 
 class CancelExpiredOrders extends Command
 {
@@ -31,23 +32,16 @@ class CancelExpiredOrders extends Command
 
         $count = 0;
         foreach ($expiredOrders as $order) {
-            // Update status
-            $order->update([
-                'status' => 'cancelled',
-                'payment_status' => 'expired'
-            ]);
 
-            // Kirim WA ke customer (optional)
-            $message = "⏰ *PESANAN EXPIRED*\n\n";
-            $message .= "Halo *{$order->customer_name}*,\n";
-            $message .= "Pesanan #{$order->order_number} telah dibatalkan otomatis karena melebihi batas waktu pembayaran (24 jam).\n\n";
-            $message .= "Silakan lakukan order ulang jika masih ingin berbelanja.\n";
-            $message .= "Terima kasih! 🙏";
+    $order->update([
+        'status' => 'cancelled',
+        'payment_status' => 'expired'
+    ]);
 
-            $this->whatsapp->send($order->customer_phone, $message);
+    SendExpiredOrderWhatsApp::dispatch($order);
 
-            $count++;
-        }
+    $count++;
+    }
 
         $this->info("{$count} expired orders have been cancelled.");
     }
