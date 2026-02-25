@@ -98,3 +98,31 @@ use Illuminate\Support\Facades\Redis;
 Redis::set('test', 'Creme&Crumb');
 Redis::get('test');
 exit
+use App\Models\Order;
+use App\Jobs\SendExpiredOrderWhatsApp;
+$order = Order::latest()->first();
+SendExpiredOrderWhatsApp::dispatch($order);
+exit
+config('cache.default');
+exit
+use App\Models\Order;
+use App\Jobs\SendExpiredOrderWhatsApp;
+$order = Order::latest()->first();
+SendExpiredOrderWhatsApp::dispatch($order);
+exit
+config('queue.default');
+php artisan queue:failed
+exit
+public function handle(NodeWhatsAppService $whatsapp)
+{
+    throw new \Exception("TEST ERROR QUEUE 🔥");
+}
+exit
+$order = App\Models\Order::latest()->first();
+App\Jobs\SendExpiredOrderWhatsApp::dispatch($order);
+exit
+php artisan config:clear
+php artisan cache:clear
+exit
+LLEN queues:default
+exit

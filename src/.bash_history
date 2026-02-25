@@ -38,3 +38,30 @@ php artisan cache:clear
 php artisan config:cache
 php artisan tinker
 exit
+php artisan tinker
+exit
+php artisan tinker
+exit
+php artisan tinker
+exit
+php artisan tinker
+php artisan queue:failed
+php artisan queue:failed-table
+php artisan migrate
+php artisan tinker
+exit
+php artisan queue:failed
+exit
+php artisan config:clear
+php artisan cache:clear
+docker compose up -d horizon
+exit
+php queue_debug.php
+pwd
+exit
+php queue_debug.php
+exit
+php queue_debug.php
+php artisan make:command QueueDebug
+exit
+exit
