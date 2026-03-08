@@ -27,14 +27,23 @@ class SendExpiredOrderWhatsApp implements ShouldQueue
 
     public function handle(NodeWhatsAppService $whatsapp)
     {
-       // $message = "⏰ *PESANAN EXPIRED*\n\n";
-       // $message .= "Halo *{$this->order->customer_name}*,\n";
-       // $message .= "Pesanan #{$this->order->order_number} telah dibatalkan otomatis karena melebihi batas waktu pembayaran (24 jam).\n\n";
-       // $message .= "Silakan lakukan order ulang jika masih ingin berbelanja.\n";
-       // $message .= "Terima kasih! 🙏";
-
-       // $whatsapp->send($this->order->customer_phone, $message);
-        throw new \Exception("TEST ERROR QUEUE 🔥");
-       // Log::info("Expired WA queued for order {$this->order->id}");
+        if ($isTest) {
+        $message = "[TEST] Halo {$this->order->customer_name}, order #{$this->order->order_number} EXPIRED.";
+        $whatsapp->send($this->order->customer_phone, $message);
+        \Log::info("TEST WA sent for order {$this->order->id}");
+        return;
     }
+
+
+        $message = "⏰ *PESANAN EXPIRED*\n\n";
+        $message .= "Halo *{$this->order->customer_name}*,\n";
+        $message .= "Pesanan #{$this->order->order_number} telah dibatalkan otomatis karena melebihi batas waktu pembayaran (24 jam).\n\n";
+        $message .= "Silakan lakukan order ulang jika masih ingin berbelanja.\n";
+        $message .= "Terima kasih! 🙏";
+
+        $whatsapp->send($this->order->customer_phone, $message);
+
+        Log::info("Expired WA queued for order {$this->order->id}");
+    }
+    
 }

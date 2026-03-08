@@ -61,7 +61,10 @@
                                        id="customer_phone" 
                                        name="customer_phone" 
                                        value="{{ old('customer_phone') }}" 
+                                       placeholder="081234567890"
+                                       oninput="formatPhoneNumber(this)"
                                        required>
+                                <small class="text-muted">Akan otomatis dikonversi ke format 62 (contoh: 6281234567890)</small>
                                 @error('customer_phone')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -243,7 +246,36 @@
 
 @push('scripts')
 <script>
-    // Toggle payment proof section based on payment method
+    // Format nomor HP ke 62
+    function formatPhoneNumber(input) {
+        // Simpan posisi cursor
+        let cursorPos = input.selectionStart;
+        let oldLength = input.value.length;
+        
+        // Hapus semua karakter non-digit
+        let number = input.value.replace(/\D/g, '');
+        
+        // Jika dimulai dengan 0, ganti dengan 62
+        if (number.startsWith('0')) {
+            number = '62' + number.substring(1);
+        }
+        
+        // Jika dimulai dengan 62, biarkan
+        // Jika tidak dimulai 0 atau 62, tambah 62 di depan (asumsi nomor lokal tanpa kode)
+        if (!number.startsWith('62') && number.length > 0) {
+            number = '62' + number;
+        }
+        
+        // Update nilai input
+        input.value = number;
+        
+        // Sesuaikan posisi cursor (kurang lebih)
+        let newLength = input.value.length;
+        cursorPos = cursorPos + (newLength - oldLength);
+        input.setSelectionRange(cursorPos, cursorPos);
+    }
+
+    // Toggle payment proof section
     document.addEventListener('DOMContentLoaded', function() {
         const manualRadio = document.getElementById('manual');
         const paymentProofSection = document.getElementById('paymentProofSection');
@@ -256,11 +288,14 @@
             }
         }
         
-        // Initial check
         togglePaymentProof();
-        
-        // Listen for changes
         manualRadio.addEventListener('change', togglePaymentProof);
+        
+        // Format nomor HP jika sudah ada value (misal dari old input)
+        const phoneInput = document.getElementById('customer_phone');
+        if (phoneInput.value) {
+            formatPhoneNumber(phoneInput);
+        }
     });
 </script>
 @endpush
