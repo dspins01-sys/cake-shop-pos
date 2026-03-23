@@ -46,13 +46,7 @@ class OrderController extends Controller
      */
     public function checkoutSuccess(Order $order)
     {
-        Log::info('checkoutSuccess dipanggil', [
-        'order_id' => $order->id,
-        'order_number' => $order->order_number,
-        'time' => now(),
-        'url' => request()->url(),
-        'method' => request()->method()
-    ]);
+        
         // 1. WA KE CUSTOMER - Order Diterima
         $customerMessage = "🍰 *CremenCrumb Bakery*\n\n";
         $customerMessage .= "Halo *{$order->customer_name}*,\n";
