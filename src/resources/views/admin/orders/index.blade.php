@@ -107,11 +107,6 @@
                                     <span class="text-muted">-</span>
                                 @endif
                             </td>
-                            <td>
-                                <a href="{{ route('admin.orders.show', $order) }}" class="btn btn-sm btn-primary">
-                                    <i class="fas fa-eye"></i> Detail
-                                </a>
-                            </td>
                             <td class="text-nowrap">
                                 <a href="{{ route('admin.orders.show', $order) }}" class="btn btn-sm btn-primary">
                                     <i class="fas fa-eye"></i> Detail
