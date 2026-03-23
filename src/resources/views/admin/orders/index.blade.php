@@ -112,10 +112,12 @@
                                     <i class="fas fa-eye"></i> Detail
                                 </a>
                             </td>
-                            <td>
-                                <a href="{{ route('admin.orders.show', $order) }}" class="btn btn-sm btn-primary">Detail</a>
+                            <td class="text-nowrap">
+                                <a href="{{ route('admin.orders.show', $order) }}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-eye"></i> Detail
+                                </a>
                                 
-                                @if($order->payment_status != 'paid' && $order->status != 'processing' && $order->status != 'completed')
+                                @if($order->payment_status != 'paid' && $order->status != 'processing' && $order->status != 'completed' && $order->status != 'cancelled')
                                     <form action="{{ route('admin.orders.destroy', $order) }}" method="POST" class="d-inline">
                                         @csrf
                                         @method('DELETE')
