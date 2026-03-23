@@ -46,6 +46,22 @@ class OrderController extends Controller
      */
     public function checkoutSuccess(Order $order)
     {
+         $lockKey = "order_success_lock:{$order->id}";
+    
+    // Coba set lock pake Redis, expired 30 detik
+    $locked = Redis::set($lockKey, 'locked', 'EX', 30, 'NX');
+    
+    if (!$locked) {
+        \Log::info('⏭️ Skip duplicate checkoutSuccess', ['order' => $order->id]);
+        return view('orders.success', compact('order'));
+    }
+    
+    try {
+        // Cek dari database juga (double protection)
+        if ($order->wa_notified_at) {
+            \Log::info('⏭️ WA sudah dikirim sebelumnya', ['order' => $order->id]);
+            return view('orders.success', compact('order'));
+        }
         
         // 1. WA KE CUSTOMER - Order Diterima
         $customerMessage = "🍰 *CremenCrumb Bakery*\n\n";
