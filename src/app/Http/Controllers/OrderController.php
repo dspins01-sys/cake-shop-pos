@@ -6,6 +6,8 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Services\NodeWhatsAppService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redis; // <-- TAMBAHIN INI!
+use Illuminate\Support\Facades\Log;   // <-- TAMBAHIN INI JUGA!
 
 class OrderController extends Controller
 {
@@ -46,55 +48,67 @@ class OrderController extends Controller
      */
     public function checkoutSuccess(Order $order)
     {
-         $lockKey = "order_success_lock:{$order->id}";
-    
-    // Coba set lock pake Redis, expired 30 detik
-    $locked = Redis::set($lockKey, 'locked', 'EX', 30, 'NX');
-    
-    if (!$locked) {
-        \Log::info('⏭️ Skip duplicate checkoutSuccess', ['order' => $order->id]);
-        return view('orders.success', compact('order'));
-    }
-    
-    try {
-        // Cek dari database juga (double protection)
-        if ($order->wa_notified_at) {
-            \Log::info('⏭️ WA sudah dikirim sebelumnya', ['order' => $order->id]);
+        $lockKey = "order_success_lock:{$order->id}";
+        
+        // Coba set lock pake Redis, expired 30 detik
+        $locked = Redis::set($lockKey, 'locked', 'EX', 30, 'NX');
+        
+        if (!$locked) {
+            Log::info('⏭️ Skip duplicate checkoutSuccess', ['order' => $order->id]);
             return view('orders.success', compact('order'));
         }
         
-        // 1. WA KE CUSTOMER - Order Diterima
-        $customerMessage = "🍰 *CremenCrumb Bakery*\n\n";
-        $customerMessage .= "Halo *{$order->customer_name}*,\n";
-        $customerMessage .= "Terima kasih telah order di CremenCrumb!\n\n";
-        $customerMessage .= "📋 *DETAIL PESANAN*\n";
-        $customerMessage .= "No. Order: {$order->order_number}\n";
-        $customerMessage .= "Total: Rp " . number_format($order->total, 0, ',', '.') . "\n";
-        $customerMessage .= "Status: Menunggu Pembayaran\n\n";
-        $customerMessage .= "💳 *INSTRUKSI PEMBAYARAN*\n";
-        $customerMessage .= "Transfer ke:\n";
-        $customerMessage .= "🏦 BCA: 1234567890 a.n. CremenCrumb\n";
-        $customerMessage .= "🏦 Mandiri: 9876543210 a.n. CremenCrumb\n\n";
-        $customerMessage .= "📤 *UPLOAD BUKTI*\n";
-        $customerMessage .= "Upload bukti transfer di:\n";
-        $customerMessage .= route('order.short', $order) . "\n\n";
-        $customerMessage .= "Konfirmasi pembayaran maks 1x24 jam.\n";
-        $customerMessage .= "Terima kasih! 🙏";
+        try {
+            // Cek dari database juga (double protection)
+            if ($order->wa_notified_at) {
+                Log::info('⏭️ WA sudah dikirim sebelumnya', ['order' => $order->id]);
+                return view('orders.success', compact('order'));
+            }
+            
+            // 1. WA KE CUSTOMER - Order Diterima
+            $customerMessage = "🍰 *CremenCrumb Bakery*\n\n";
+            $customerMessage .= "Halo *{$order->customer_name}*,\n";
+            $customerMessage .= "Terima kasih telah order di CremenCrumb!\n\n";
+            $customerMessage .= "📋 *DETAIL PESANAN*\n";
+            $customerMessage .= "No. Order: {$order->order_number}\n";
+            $customerMessage .= "Total: Rp " . number_format($order->total, 0, ',', '.') . "\n";
+            $customerMessage .= "Status: Menunggu Pembayaran\n\n";
+            $customerMessage .= "💳 *INSTRUKSI PEMBAYARAN*\n";
+            $customerMessage .= "Transfer ke:\n";
+            $customerMessage .= "🏦 BCA: 1234567890 a.n. CremenCrumb\n";
+            $customerMessage .= "🏦 Mandiri: 9876543210 a.n. CremenCrumb\n\n";
+            $customerMessage .= "📤 *UPLOAD BUKTI*\n";
+            $customerMessage .= "Upload bukti transfer di:\n";
+            $customerMessage .= route('order.short', $order) . "\n\n";
+            $customerMessage .= "Konfirmasi pembayaran maks 1x24 jam.\n";
+            $customerMessage .= "Terima kasih! 🙏";
 
-        $this->whatsapp->send($order->customer_phone, $customerMessage);
+            $this->whatsapp->send($order->customer_phone, $customerMessage);
 
-        // 2. WA KE ADMIN - Notifikasi Order Baru
-        $adminMessage = "🆕 *ORDER BARU MASUK!*\n\n";
-        $adminMessage .= "📋 *Detail Order:*\n";
-        $adminMessage .= "No. Order: {$order->order_number}\n";
-        $adminMessage .= "Customer: {$order->customer_name}\n";
-        $adminMessage .= "Total: Rp " . number_format($order->total, 0, ',', '.') . "\n";
-        $adminMessage .= "Status: Menunggu Pembayaran\n\n";
-        $adminMessage .= "🔗 Link: " . route('admin.orders.show', $order);
+            // 2. WA KE ADMIN - Notifikasi Order Baru
+            $adminMessage = "🆕 *ORDER BARU MASUK!*\n\n";
+            $adminMessage .= "📋 *Detail Order:*\n";
+            $adminMessage .= "No. Order: {$order->order_number}\n";
+            $adminMessage .= "Customer: {$order->customer_name}\n";
+            $adminMessage .= "Total: Rp " . number_format($order->total, 0, ',', '.') . "\n";
+            $adminMessage .= "Status: Menunggu Pembayaran\n\n";
+            $adminMessage .= "🔗 Link: " . route('admin.orders.show', $order);
 
-        $this->whatsapp->send(env('ADMIN_WHATSAPP'), $adminMessage);
-
-        // Redirect ke halaman upload (tanpa kirim WA lagi)
+            $this->whatsapp->send(env('ADMIN_WHATSAPP'), $adminMessage);
+            
+            // Tandai udah dikirim
+            $order->update(['wa_notified_at' => now()]);
+            
+            Log::info('✅ WA berhasil dikirim', ['order' => $order->id]);
+            
+        } catch (\Exception $e) {
+            Log::error('❌ Gagal kirim WA: ' . $e->getMessage(), [
+                'order' => $order->id,
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
+        
+        // Redirect ke halaman upload
         return redirect()->route('order.upload', $order);
     }
 
@@ -334,34 +348,35 @@ class OrderController extends Controller
         return redirect()->route('admin.orders.index')
             ->with('success', 'Semua order berhasil dihapus!');
     }
-    /**
- * Clear all orders WITH restoring stock (untuk testing/reset total)
- */
-public function clearAllWithRestore()
-{
-    // 1. Kembalikan stok untuk order yang sudah mengurangi stok
-    $orders = Order::whereIn('payment_status', ['paid', 'waiting_confirmation'])
-        ->whereIn('status', ['processing', 'completed', 'paid'])
-        ->get();
     
-    $restoredCount = 0;
-    foreach ($orders as $order) {
-        foreach ($order->items as $item) {
-            $product = Product::find($item->product_id);
-            if ($product) {
-                $product->increment('stock', $item->quantity);
-                $restoredCount++;
+    /**
+     * Clear all orders WITH restoring stock (untuk testing/reset total)
+     */
+    public function clearAllWithRestore()
+    {
+        // 1. Kembalikan stok untuk order yang sudah mengurangi stok
+        $orders = Order::whereIn('payment_status', ['paid', 'waiting_confirmation'])
+            ->whereIn('status', ['processing', 'completed', 'paid'])
+            ->get();
+        
+        $restoredCount = 0;
+        foreach ($orders as $order) {
+            foreach ($order->items as $item) {
+                $product = Product::find($item->product_id);
+                if ($product) {
+                    $product->increment('stock', $item->quantity);
+                    $restoredCount++;
+                }
             }
         }
+
+        // 2. Hapus semua order items
+        \DB::table('order_items')->delete();
+        
+        // 3. Hapus semua orders
+        \DB::table('orders')->delete();
+
+        return redirect()->route('admin.orders.index')
+            ->with('success', "Reset total! $restoredCount item stok dikembalikan. Semua order dihapus.");
     }
-
-    // 2. Hapus semua order items
-    \DB::table('order_items')->delete();
-    
-    // 3. Hapus semua orders
-    \DB::table('orders')->delete();
-
-    return redirect()->route('admin.orders.index')
-        ->with('success', "Reset total! $restoredCount item stok dikembalikan. Semua order dihapus.");
-}
-}
+} // <-- INI PENTING! Tutup class
