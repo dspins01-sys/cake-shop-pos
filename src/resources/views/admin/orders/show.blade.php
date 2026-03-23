@@ -16,6 +16,10 @@
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
+    
+    @if(session('error'))
+        <div class="alert alert-danger">{{ session('error') }}</div>
+    @endif
 
     <!-- Order Items -->
     <div class="card mb-4">
@@ -93,7 +97,7 @@
                             @if($order->payment_status == 'paid')
                                 <span class="badge bg-success">PAID</span>
                             @elseif($order->payment_status == 'waiting_confirmation')
-                                <span class="badge bg-warning text-dark">WAITING</span>
+                                <span class="badge bg-warning text-dark">WAITING CONFIRMATION</span>
                             @else
                                 <span class="badge bg-danger">UNPAID</span>
                             @endif
@@ -104,6 +108,17 @@
                         <span class="text-muted">Method:</span>
                         <span class="fw-bold">{{ strtoupper($order->payment_method) }}</span>
                     </div>
+
+                    @if($order->payment_proof)
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="text-muted">Payment Proof:</span>
+                        <span>
+                            <a href="{{ asset('storage/' . $order->payment_proof) }}" target="_blank" class="btn btn-sm btn-outline-info">
+                                <i class="fas fa-eye"></i> View Proof
+                            </a>
+                        </span>
+                    </div>
+                    @endif
 
                     <hr>
 
@@ -116,32 +131,71 @@
                                 <span class="badge bg-info">PROCESSING</span>
                             @elseif($order->status == 'completed')
                                 <span class="badge bg-success">COMPLETED</span>
+                            @elseif($order->status == 'cancelled')
+                                <span class="badge bg-danger">CANCELLED</span>
                             @else
                                 <span class="badge bg-danger">{{ strtoupper($order->status) }}</span>
                             @endif
                         </span>
                     </div>
 
-                    @if($order->payment_status == 'unpaid' && $order->status == 'pending')
-                        <hr>
-                        <div class="d-flex gap-2">
+                    <!-- ACTION BUTTONS SECTION -->
+                    <hr>
+                    <div class="d-flex flex-wrap gap-2">
+                        <!-- CONFIRM PAYMENT BUTTON - For orders waiting confirmation -->
+                        @if($order->payment_status == 'waiting_confirmation')
+                            <form action="{{ route('admin.orders.confirm-payment', $order) }}" method="POST" class="flex-grow-1">
+                                @csrf
+                                <button type="submit" class="btn btn-success w-100" 
+                                        onclick="return confirm('Confirm payment for this order? This will update stock and notify customer.')">
+                                    <i class="fas fa-check-circle me-2"></i> Confirm Payment
+                                </button>
+                            </form>
+                        @endif
+
+                        <!-- PROCESS ORDER BUTTON - For paid orders not yet processing -->
+                        @if($order->payment_status == 'paid' && $order->status == 'pending')
+                            <form action="{{ route('admin.orders.process', $order) }}" method="POST" class="flex-grow-1">
+                                @csrf
+                                <button type="submit" class="btn btn-info w-100">
+                                    <i class="fas fa-cogs me-2"></i> Process Order
+                                </button>
+                            </form>
+                        @endif
+
+                        <!-- COMPLETE ORDER BUTTON - For processing orders -->
+                        @if($order->status == 'processing')
+                            <form action="{{ route('admin.orders.complete', $order) }}" method="POST" class="flex-grow-1">
+                                @csrf
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-check-double me-2"></i> Complete Order
+                                </button>
+                            </form>
+                        @endif
+
+                        <!-- CANCEL BUTTON - For unpaid or waiting orders -->
+                        @if(in_array($order->payment_status, ['unpaid', 'waiting_confirmation']) && $order->status != 'cancelled')
                             <form action="{{ route('admin.orders.cancel', $order) }}" method="POST" class="flex-grow-1">
                                 @csrf
                                 <button type="submit" class="btn btn-outline-danger w-100" 
                                         onclick="return confirm('Cancel this order?')">
-                                    Cancel Order
+                                    <i class="fas fa-times-circle me-2"></i> Cancel Order
                                 </button>
                             </form>
+                        @endif
+
+                        <!-- DELETE BUTTON - Only for cancelled or pending unpaid orders -->
+                        @if(($order->payment_status == 'unpaid' && $order->status == 'pending') || $order->status == 'cancelled')
                             <form action="{{ route('admin.orders.destroy', $order) }}" method="POST" class="flex-grow-1">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-outline-secondary w-100" 
-                                        onclick="return confirm('Delete this order?')">
-                                    Hapus Order
+                                        onclick="return confirm('Delete this order permanently?')">
+                                    <i class="fas fa-trash me-2"></i> Delete Order
                                 </button>
                             </form>
-                        </div>
-                    @endif
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>
