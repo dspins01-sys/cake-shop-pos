@@ -8,7 +8,7 @@ class Order extends Model
 {
     protected $fillable = [
     'order_number',
-    'tracking_code', // <-- PASTIKAN INI ADA
+    'tracking_code', 
     'customer_name',
     'customer_email',
     'customer_phone',
