@@ -250,10 +250,6 @@
                                         Scheduler: {{ $systemStatus['scheduler'] ?? 'N/A' }}
                                     </div>
                                     <div class="mb-1">
-                                        <i class="fas fa-{{ $systemStatus['queue'] == 'Active' ? 'check-circle text-success' : 'times-circle text-danger' }} me-1"></i>
-                                        Queue: {{ $systemStatus['queue'] ?? 'N/A' }}
-                                    </div>
-                                    <div class="mb-1">
                                         <i class="fas fa-{{ $systemStatus['redis'] == 'Connected' ? 'check-circle text-success' : 'times-circle text-danger' }} me-1"></i>
                                         Redis: {{ $systemStatus['redis'] ?? 'N/A' }}
                                     </div>
