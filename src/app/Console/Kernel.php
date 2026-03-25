@@ -12,12 +12,18 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // Cancel expired orders every minute
+        // Method 1: Pake call
+        $schedule->call(function () {
+            Artisan::call('orders:cancel-expired');
+        })->everyMinute()->name('cancel-expired-orders');
+        
+        // Method 2: Pake command (backup)
         $schedule->command('orders:cancel-expired')
                  ->everyMinute()
                  ->withoutOverlapping()
                  ->appendOutputTo(storage_path('logs/scheduler.log'));
     }
+
 
     /**
      * Register the commands for the application.
