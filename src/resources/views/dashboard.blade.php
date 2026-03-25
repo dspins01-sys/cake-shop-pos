@@ -226,11 +226,6 @@
                                     <i class="fas fa-chart-line me-1"></i>
                                     Processed: {{ $processedJobsToday ?? 0 }} today
                                 </small>
-                                <div class="mt-2">
-                                    <button class="btn btn-sm btn-secondary w-100" onclick="restartQueue()">
-                                        <i class="fas fa-sync-alt"></i> Restart Worker
-                                    </button>
-                                </div>
                             </div>
                         </div>
                         
