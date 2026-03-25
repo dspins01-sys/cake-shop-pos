@@ -209,26 +209,6 @@
                             </div>
                         </div>
                         
-                        <!-- Queue Worker Box -->
-                        <div class="col-md-4 mb-3">
-                            <div class="p-3 border rounded bg-light">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="fw-bold">
-                                        <i class="fas fa-tasks text-info me-2"></i>
-                                        Queue Worker
-                                    </span>
-                                    <span class="badge bg-{{ isset($systemStatus['queue']) && $systemStatus['queue'] == 'Active' ? 'success' : 'danger' }}">
-                                        {{ $systemStatus['queue'] ?? 'N/A' }}
-                                    </span>
-                                </div>
-                                <div class="display-6 mb-2">{{ $pendingJobs ?? 0 }}</div>
-                                <small class="text-muted">
-                                    <i class="fas fa-chart-line me-1"></i>
-                                    Processed: {{ $processedJobsToday ?? 0 }} today
-                                </small>
-                            </div>
-                        </div>
-                        
                         <!-- System Status Box -->
                         <div class="col-md-4 mb-3">
                             <div class="p-3 border rounded bg-light">
@@ -319,35 +299,6 @@ function runExpiredCheck() {
     }
 }
 
-// Restart queue worker
-function restartQueue() {
-    if(confirm('Restart queue worker? This may take a few seconds.')) {
-        const btn = event.currentTarget;
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Restarting...';
-        btn.disabled = true;
-        
-        fetch('{{ route("admin.queue.restart") }}', {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            showAlert(data.message, 'success');
-            setTimeout(() => location.reload(), 2000);
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showAlert('Error restarting queue worker', 'danger');
-        })
-        .finally(() => {
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-        });
-    }
-}
 
 // Show alert message
 function showAlert(message, type) {
