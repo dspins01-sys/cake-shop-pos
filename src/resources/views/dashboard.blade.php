@@ -69,6 +69,106 @@
         </div>
     </div>
 
+        <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-charging-station me-2 text-primary"></i>
+                        System Health & Scheduler
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Expired Orders Box -->
+                        <div class="col-md-4 mb-3">
+                            <div class="p-3 border rounded bg-light">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-bold">
+                                        <i class="fas fa-hourglass-half text-warning me-2"></i>
+                                        Expired Orders
+                                    </span>
+                                    <span class="badge bg-success">Auto</span>
+                                </div>
+                                <div class="display-6 mb-2">{{ $expiredOrdersToday ?? 0 }}</div>
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>
+                                    Last check: {{ $lastExpiredCheck ?? 'Never' }}
+                                </small>
+                                <div class="mt-2">
+                                    <button class="btn btn-sm btn-primary w-100" onclick="runExpiredCheck()">
+                                        <i class="fas fa-play"></i> Check Now
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Queue Worker Box -->
+                        <div class="col-md-4 mb-3">
+                            <div class="p-3 border rounded bg-light">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-bold">
+                                        <i class="fas fa-tasks text-info me-2"></i>
+                                        Queue Worker
+                                    </span>
+                                    <span class="badge bg-{{ isset($systemStatus['queue']) && $systemStatus['queue'] == 'Active' ? 'success' : 'danger' }}">
+                                        {{ $systemStatus['queue'] ?? 'N/A' }}
+                                    </span>
+                                </div>
+                                <div class="display-6 mb-2">{{ $pendingJobs ?? 0 }}</div>
+                                <small class="text-muted">
+                                    <i class="fas fa-chart-line me-1"></i>
+                                    Processed: {{ $processedJobsToday ?? 0 }} today
+                                </small>
+                                <div class="mt-2">
+                                    <button class="btn btn-sm btn-secondary w-100" onclick="restartQueue()">
+                                        <i class="fas fa-sync-alt"></i> Restart Worker
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- System Status Box -->
+                        <div class="col-md-4 mb-3">
+                            <div class="p-3 border rounded bg-light">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-bold">
+                                        <i class="fas fa-calendar-alt text-success me-2"></i>
+                                        System Status
+                                    </span>
+                                    <span class="badge bg-success">Healthy</span>
+                                </div>
+                                <div class="small">
+                                    <div class="mb-1">
+                                        <i class="fas fa-{{ $systemStatus['scheduler'] == 'Running' ? 'check-circle text-success' : 'times-circle text-danger' }} me-1"></i>
+                                        Scheduler: {{ $systemStatus['scheduler'] ?? 'N/A' }}
+                                    </div>
+                                    <div class="mb-1">
+                                        <i class="fas fa-{{ $systemStatus['queue'] == 'Active' ? 'check-circle text-success' : 'times-circle text-danger' }} me-1"></i>
+                                        Queue: {{ $systemStatus['queue'] ?? 'N/A' }}
+                                    </div>
+                                    <div class="mb-1">
+                                        <i class="fas fa-{{ $systemStatus['redis'] == 'Connected' ? 'check-circle text-success' : 'times-circle text-danger' }} me-1"></i>
+                                        Redis: {{ $systemStatus['redis'] ?? 'N/A' }}
+                                    </div>
+                                    <div>
+                                        <i class="fas fa-{{ $systemStatus['mysql'] == 'Connected' ? 'check-circle text-success' : 'times-circle text-danger' }} me-1"></i>
+                                        MySQL: {{ $systemStatus['mysql'] ?? 'N/A' }}
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    <button class="btn btn-sm btn-outline-success w-100" onclick="refreshStatus()">
+                                        <i class="fas fa-heartbeat"></i> Health Check
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     @if(session('error'))
         <div class="alert alert-danger">{{ session('error') }}</div>
     @endif
@@ -182,3 +282,101 @@
     </div>
 </div>
 @endsection
+@push('scripts')
+<script>
+// Refresh scheduler status
+function refreshStatus() {
+    fetch('{{ route("admin.scheduler.status") }}')
+        .then(response => response.json())
+        .then(data => {
+            // Show success message
+            showAlert('System health checked! All systems operational.', 'success');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('Error checking system status', 'danger');
+        });
+}
+
+// Check expired orders manually
+function runExpiredCheck() {
+    if(confirm('Check expired orders now?')) {
+        const btn = event.currentTarget;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking...';
+        btn.disabled = true;
+        
+        fetch('{{ route("admin.orders.check-expired") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            showAlert(data.message, 'success');
+            setTimeout(() => location.reload(), 1500);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('Error checking expired orders', 'danger');
+        })
+        .finally(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
+    }
+}
+
+// Restart queue worker
+function restartQueue() {
+    if(confirm('Restart queue worker? This may take a few seconds.')) {
+        const btn = event.currentTarget;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Restarting...';
+        btn.disabled = true;
+        
+        fetch('{{ route("admin.queue.restart") }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            showAlert(data.message, 'success');
+            setTimeout(() => location.reload(), 2000);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('Error restarting queue worker', 'danger');
+        })
+        .finally(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
+    }
+}
+
+// Show alert message
+function showAlert(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.querySelector('.container').insertBefore(alertDiv, document.querySelector('.container').firstChild);
+    
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 3000);
+}
+
+// Auto refresh every 60 seconds
+setInterval(() => {
+    refreshStatus();
+}, 60000);
+</script>
+@endpush

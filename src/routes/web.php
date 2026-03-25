@@ -63,6 +63,18 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'admin'])
     ->name('dashboard');
 
+// Dashboard & Scheduler routes (Admin only)
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/scheduler/status', [App\Http\Controllers\DashboardController::class, 'schedulerStatus'])
+        ->name('scheduler.status');
+    Route::post('/scheduler/run', [App\Http\Controllers\DashboardController::class, 'runTask'])
+        ->name('scheduler.run');
+    Route::post('/orders/check-expired', [App\Http\Controllers\DashboardController::class, 'checkExpired'])
+        ->name('orders.check-expired');
+    Route::post('/queue/restart', [App\Http\Controllers\DashboardController::class, 'restartQueue'])
+        ->name('queue.restart');
+});
+
 // Profile routes
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
