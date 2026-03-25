@@ -169,25 +169,18 @@ class DashboardController extends Controller
      * Check if scheduler is running
      */
     private function checkScheduler()
-    {
-        try {
-            // Cek container scheduler
-            $output = shell_exec('docker ps --filter "name=cake-scheduler" --format "{{.Status}}" 2>/dev/null');
-            if ($output && str_contains($output, 'Up')) {
-                return 'Running';
-            }
-            
-            // Alternative: cek process scheduler
-            $output = shell_exec('ps aux | grep "schedule:run" | grep -v grep');
-            if ($output) {
-                return 'Running';
-            }
-            
-            return 'Not Running';
-        } catch (\Exception $e) {
-            return 'Unknown';
+{
+    try {
+        // Cek container scheduler running
+        $output = shell_exec('docker ps --filter "name=cake-scheduler" --format "{{.Status}}" 2>/dev/null');
+        if ($output && str_contains($output, 'Up')) {
+            return 'Running';
         }
+        return 'Not Running';
+    } catch (\Exception $e) {
+        return 'Unknown';
     }
+}
     
     /**
      * Check if queue worker is running
