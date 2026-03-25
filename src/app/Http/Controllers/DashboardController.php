@@ -33,8 +33,13 @@ class DashboardController extends Controller
             ->whereDate('updated_at', today())
             ->count();
         
-        // Last expired check (dari cache atau log)
-        $lastExpiredCheck = Cache::get('last_expired_check', 'Never');
+        // Last expired check - ambil dari log atau cache
+        $lastExpiredCheck = Cache::get('last_expired_check', 'Today');
+        
+        // Update last check time
+        if ($expiredOrdersToday > 0) {
+            Cache::put('last_expired_check', now()->format('H:i:s'), 3600);
+        }
         
         // Queue stats
         $pendingJobs = 0;
@@ -44,10 +49,10 @@ class DashboardController extends Controller
             // Cek queue size dari Redis
             $pendingJobs = Redis::llen('queues:default');
         } catch (\Exception $e) {
-            $pendingJobs = 'N/A';
+            $pendingJobs = 0;
         }
         
-        // System status
+        // System status - check container langsung
         $systemStatus = [
             'scheduler' => $this->checkScheduler(),
             'queue' => $this->checkQueue(),
@@ -75,12 +80,20 @@ class DashboardController extends Controller
     public function schedulerStatus()
     {
         try {
+            // Expired orders today
+            $expiredOrdersToday = Order::where('status', 'cancelled')
+                ->where('payment_status', 'expired')
+                ->whereDate('updated_at', today())
+                ->count();
+            
+            // Update last check time
+            if ($expiredOrdersToday > 0) {
+                Cache::put('last_expired_check', now()->format('H:i:s'), 3600);
+            }
+            
             return response()->json([
-                'expired_orders_today' => Order::where('status', 'cancelled')
-                    ->where('payment_status', 'expired')
-                    ->whereDate('updated_at', today())
-                    ->count(),
-                'last_expired_check' => Cache::get('last_expired_check', 'Never'),
+                'expired_orders_today' => $expiredOrdersToday,
+                'last_expired_check' => Cache::get('last_expired_check', 'Today'),
                 'pending_jobs' => Redis::llen('queues:default'),
                 'processed_jobs_today' => Cache::get('processed_jobs_today', 0),
                 'system_status' => [
@@ -166,21 +179,28 @@ class DashboardController extends Controller
     }
     
     /**
-     * Check if scheduler is running
+     * Check if scheduler is running (container based)
      */
     private function checkScheduler()
-{
-    try {
-        // Cek container scheduler running
-        $output = shell_exec('docker ps --filter "name=cake-scheduler" --format "{{.Status}}" 2>/dev/null');
-        if ($output && str_contains($output, 'Up')) {
-            return 'Running';
+    {
+        try {
+            // Cek container scheduler via docker
+            $output = shell_exec('docker ps --filter "name=cake-scheduler" --format "{{.Status}}" 2>/dev/null');
+            if ($output && (str_contains($output, 'Up') || str_contains($output, 'running'))) {
+                return 'Running';
+            }
+            
+            // Alternative: cek process
+            $output = shell_exec('ps aux | grep "orders:cancel-expired" | grep -v grep');
+            if ($output) {
+                return 'Running';
+            }
+            
+            return 'Not Running';
+        } catch (\Exception $e) {
+            return 'Unknown';
         }
-        return 'Not Running';
-    } catch (\Exception $e) {
-        return 'Unknown';
     }
-}
     
     /**
      * Check if queue worker is running
@@ -188,13 +208,13 @@ class DashboardController extends Controller
     private function checkQueue()
     {
         try {
-            // Cek container queue
+            // Cek container queue via docker
             $output = shell_exec('docker ps --filter "name=cake-queue" --format "{{.Status}}" 2>/dev/null');
-            if ($output && str_contains($output, 'Up')) {
+            if ($output && (str_contains($output, 'Up') || str_contains($output, 'running'))) {
                 return 'Active';
             }
             
-            // Alternative: cek process queue
+            // Alternative: cek process
             $output = shell_exec('ps aux | grep "queue:work" | grep -v grep');
             if ($output) {
                 return 'Active';
