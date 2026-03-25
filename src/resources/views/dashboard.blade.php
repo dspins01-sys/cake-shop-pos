@@ -69,106 +69,6 @@
         </div>
     </div>
 
-        <div class="row mt-4">
-        <div class="col-md-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-charging-station me-2 text-primary"></i>
-                        System Health & Scheduler
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <!-- Expired Orders Box -->
-                        <div class="col-md-4 mb-3">
-                            <div class="p-3 border rounded bg-light">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="fw-bold">
-                                        <i class="fas fa-hourglass-half text-warning me-2"></i>
-                                        Expired Orders
-                                    </span>
-                                    <span class="badge bg-success">Auto</span>
-                                </div>
-                                <div class="display-6 mb-2">{{ $expiredOrdersToday ?? 0 }}</div>
-                                <small class="text-muted">
-                                    <i class="fas fa-clock me-1"></i>
-                                    Last check: {{ $lastExpiredCheck ?? 'Never' }}
-                                </small>
-                                <div class="mt-2">
-                                    <button class="btn btn-sm btn-primary w-100" onclick="runExpiredCheck()">
-                                        <i class="fas fa-play"></i> Check Now
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Queue Worker Box -->
-                        <div class="col-md-4 mb-3">
-                            <div class="p-3 border rounded bg-light">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="fw-bold">
-                                        <i class="fas fa-tasks text-info me-2"></i>
-                                        Queue Worker
-                                    </span>
-                                    <span class="badge bg-{{ isset($systemStatus['queue']) && $systemStatus['queue'] == 'Active' ? 'success' : 'danger' }}">
-                                        {{ $systemStatus['queue'] ?? 'N/A' }}
-                                    </span>
-                                </div>
-                                <div class="display-6 mb-2">{{ $pendingJobs ?? 0 }}</div>
-                                <small class="text-muted">
-                                    <i class="fas fa-chart-line me-1"></i>
-                                    Processed: {{ $processedJobsToday ?? 0 }} today
-                                </small>
-                                <div class="mt-2">
-                                    <button class="btn btn-sm btn-secondary w-100" onclick="restartQueue()">
-                                        <i class="fas fa-sync-alt"></i> Restart Worker
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- System Status Box -->
-                        <div class="col-md-4 mb-3">
-                            <div class="p-3 border rounded bg-light">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="fw-bold">
-                                        <i class="fas fa-calendar-alt text-success me-2"></i>
-                                        System Status
-                                    </span>
-                                    <span class="badge bg-success">Healthy</span>
-                                </div>
-                                <div class="small">
-                                    <div class="mb-1">
-                                        <i class="fas fa-{{ $systemStatus['scheduler'] == 'Running' ? 'check-circle text-success' : 'times-circle text-danger' }} me-1"></i>
-                                        Scheduler: {{ $systemStatus['scheduler'] ?? 'N/A' }}
-                                    </div>
-                                    <div class="mb-1">
-                                        <i class="fas fa-{{ $systemStatus['queue'] == 'Active' ? 'check-circle text-success' : 'times-circle text-danger' }} me-1"></i>
-                                        Queue: {{ $systemStatus['queue'] ?? 'N/A' }}
-                                    </div>
-                                    <div class="mb-1">
-                                        <i class="fas fa-{{ $systemStatus['redis'] == 'Connected' ? 'check-circle text-success' : 'times-circle text-danger' }} me-1"></i>
-                                        Redis: {{ $systemStatus['redis'] ?? 'N/A' }}
-                                    </div>
-                                    <div>
-                                        <i class="fas fa-{{ $systemStatus['mysql'] == 'Connected' ? 'check-circle text-success' : 'times-circle text-danger' }} me-1"></i>
-                                        MySQL: {{ $systemStatus['mysql'] ?? 'N/A' }}
-                                    </div>
-                                </div>
-                                <div class="mt-2">
-                                    <button class="btn btn-sm btn-outline-success w-100" onclick="refreshStatus()">
-                                        <i class="fas fa-heartbeat"></i> Health Check
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     @if(session('error'))
         <div class="alert alert-danger">{{ session('error') }}</div>
     @endif
@@ -271,6 +171,105 @@
                     @else
                         <p class="text-muted text-center py-3">All products have sufficient stock</p>
                     @endif
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-charging-station me-2 text-primary"></i>
+                        System Health & Scheduler
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Expired Orders Box -->
+                        <div class="col-md-4 mb-3">
+                            <div class="p-3 border rounded bg-light">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-bold">
+                                        <i class="fas fa-hourglass-half text-warning me-2"></i>
+                                        Expired Orders
+                                    </span>
+                                    <span class="badge bg-success">Auto</span>
+                                </div>
+                                <div class="display-6 mb-2">{{ $expiredOrdersToday ?? 0 }}</div>
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>
+                                    Last check: {{ $lastExpiredCheck ?? 'Never' }}
+                                </small>
+                                <div class="mt-2">
+                                    <button class="btn btn-sm btn-primary w-100" onclick="runExpiredCheck()">
+                                        <i class="fas fa-play"></i> Check Now
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Queue Worker Box -->
+                        <div class="col-md-4 mb-3">
+                            <div class="p-3 border rounded bg-light">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-bold">
+                                        <i class="fas fa-tasks text-info me-2"></i>
+                                        Queue Worker
+                                    </span>
+                                    <span class="badge bg-{{ isset($systemStatus['queue']) && $systemStatus['queue'] == 'Active' ? 'success' : 'danger' }}">
+                                        {{ $systemStatus['queue'] ?? 'N/A' }}
+                                    </span>
+                                </div>
+                                <div class="display-6 mb-2">{{ $pendingJobs ?? 0 }}</div>
+                                <small class="text-muted">
+                                    <i class="fas fa-chart-line me-1"></i>
+                                    Processed: {{ $processedJobsToday ?? 0 }} today
+                                </small>
+                                <div class="mt-2">
+                                    <button class="btn btn-sm btn-secondary w-100" onclick="restartQueue()">
+                                        <i class="fas fa-sync-alt"></i> Restart Worker
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- System Status Box -->
+                        <div class="col-md-4 mb-3">
+                            <div class="p-3 border rounded bg-light">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-bold">
+                                        <i class="fas fa-calendar-alt text-success me-2"></i>
+                                        System Status
+                                    </span>
+                                    <span class="badge bg-success">Healthy</span>
+                                </div>
+                                <div class="small">
+                                    <div class="mb-1">
+                                        <i class="fas fa-{{ $systemStatus['scheduler'] == 'Running' ? 'check-circle text-success' : 'times-circle text-danger' }} me-1"></i>
+                                        Scheduler: {{ $systemStatus['scheduler'] ?? 'N/A' }}
+                                    </div>
+                                    <div class="mb-1">
+                                        <i class="fas fa-{{ $systemStatus['queue'] == 'Active' ? 'check-circle text-success' : 'times-circle text-danger' }} me-1"></i>
+                                        Queue: {{ $systemStatus['queue'] ?? 'N/A' }}
+                                    </div>
+                                    <div class="mb-1">
+                                        <i class="fas fa-{{ $systemStatus['redis'] == 'Connected' ? 'check-circle text-success' : 'times-circle text-danger' }} me-1"></i>
+                                        Redis: {{ $systemStatus['redis'] ?? 'N/A' }}
+                                    </div>
+                                    <div>
+                                        <i class="fas fa-{{ $systemStatus['mysql'] == 'Connected' ? 'check-circle text-success' : 'times-circle text-danger' }} me-1"></i>
+                                        MySQL: {{ $systemStatus['mysql'] ?? 'N/A' }}
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    <button class="btn btn-sm btn-outline-success w-100" onclick="refreshStatus()">
+                                        <i class="fas fa-heartbeat"></i> Health Check
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
