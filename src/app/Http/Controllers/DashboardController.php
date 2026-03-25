@@ -201,36 +201,6 @@ private function checkScheduler()
     }
 }
 
-/**
- * Check if queue worker is running
- */
-private function checkQueue()
-{
-    try {
-        // Cek apakah ada queue worker dengan cek redis
-        $pendingJobs = Redis::llen('queues:default');
-        // Kalo ada pending jobs atau queue worker jalan, dianggap active
-        if ($pendingJobs > 0) {
-            return 'Active';
-        }
-        
-        // Cek last queue job
-        $lastJob = Cache::get('queue_last_job');
-        if ($lastJob && now()->diffInMinutes($lastJob) < 10) {
-            return 'Active';
-        }
-        
-        // Alternative: cek container via process (coba yang ringan)
-        $output = shell_exec('ps aux 2>/dev/null | grep "queue:work" | grep -v grep');
-        if ($output && strlen($output) > 10) {
-            return 'Active';
-        }
-        
-        return 'Not Active';
-    } catch (\Exception $e) {
-        return 'Unknown';
-    }
-}
     /**
      * Check Redis connection
      */
