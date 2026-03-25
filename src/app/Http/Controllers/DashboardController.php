@@ -181,51 +181,62 @@ class DashboardController extends Controller
     /**
      * Check if scheduler is running (container based)
      */
-    private function checkScheduler()
-    {
-        try {
-            // Cek container scheduler via docker
-            $output = shell_exec('docker ps --filter "name=cake-scheduler" --format "{{.Status}}" 2>/dev/null');
-            if ($output && (str_contains($output, 'Up') || str_contains($output, 'running'))) {
-                return 'Running';
-            }
-            
-            // Alternative: cek process
-            $output = shell_exec('ps aux | grep "orders:cancel-expired" | grep -v grep');
-            if ($output) {
-                return 'Running';
-            }
-            
-            return 'Not Running';
-        } catch (\Exception $e) {
-            return 'Unknown';
-        }
-    }
-    
     /**
-     * Check if queue worker is running
-     */
-    private function checkQueue()
-    {
-        try {
-            // Cek container queue via docker
-            $output = shell_exec('docker ps --filter "name=cake-queue" --format "{{.Status}}" 2>/dev/null');
-            if ($output && (str_contains($output, 'Up') || str_contains($output, 'running'))) {
-                return 'Active';
-            }
-            
-            // Alternative: cek process
-            $output = shell_exec('ps aux | grep "queue:work" | grep -v grep');
-            if ($output) {
-                return 'Active';
-            }
-            
-            return 'Not Active';
-        } catch (\Exception $e) {
-            return 'Unknown';
+ * Check if scheduler is running (based on last activity)
+ */
+private function checkScheduler()
+{
+    try {
+        // Cek log terakhir scheduler
+        $lastLog = Cache::get('scheduler_last_run', null);
+        
+        if ($lastLog && now()->diffInMinutes($lastLog) < 5) {
+            return 'Running';
         }
+        
+        // Alternative: cek apakah ada file log yang baru di-update
+        $logFile = storage_path('logs/scheduler.log');
+        if (file_exists($logFile) && (time() - filemtime($logFile)) < 300) {
+            return 'Running';
+        }
+        
+        // Cek dari container via HTTP request (optional)
+        // Bisa juga cek dari proses yang jalan
+        $output = shell_exec('ps aux | grep "orders:cancel-expired" | grep -v grep');
+        if ($output) {
+            return 'Running';
+        }
+        
+        return 'Not Running';
+    } catch (\Exception $e) {
+        return 'Unknown';
     }
-    
+}
+
+/**
+ * Check if queue worker is running
+ */
+private function checkQueue()
+{
+    try {
+        // Cek apakah ada pending jobs yang terproses
+        $lastQueueJob = Cache::get('queue_last_job', null);
+        
+        if ($lastQueueJob && now()->diffInMinutes($lastQueueJob) < 10) {
+            return 'Active';
+        }
+        
+        // Cek dari proses
+        $output = shell_exec('ps aux | grep "queue:work" | grep -v grep');
+        if ($output) {
+            return 'Active';
+        }
+        
+        return 'Not Active';
+    } catch (\Exception $e) {
+        return 'Unknown';
+    }
+}
     /**
      * Check Redis connection
      */
