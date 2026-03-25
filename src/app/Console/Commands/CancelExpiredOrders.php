@@ -6,6 +6,7 @@ use App\Models\Order;
 use Illuminate\Console\Command;
 use App\Services\NodeWhatsAppService;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache; // TAMBAHKAN INI
 
 class CancelExpiredOrders extends Command
 {
@@ -15,6 +16,9 @@ class CancelExpiredOrders extends Command
     public function handle()
     {
         $this->info('Checking expired orders...');
+        
+        // UPDATE CACHE - biar dashboard tau scheduler jalan
+        Cache::put('scheduler_last_run', now(), 3600);
         
         // Log waktu sekarang
         $now = now();
@@ -54,12 +58,22 @@ class CancelExpiredOrders extends Command
                 $whatsapp->send($order->customer_phone, $message);
                 $this->info("WA sent to {$order->customer_phone}");
                 Log::info("Expired order cancelled and WA sent", ['order' => $order->id]);
+                
+                // Update jumlah processed hari ini
+                $processedToday = Cache::get('processed_jobs_today', 0);
+                Cache::put('processed_jobs_today', $processedToday + 1, 86400);
+                
             } catch (\Exception $e) {
                 $this->error("Failed to send WA: " . $e->getMessage());
                 Log::error("Failed to send expired WA", ['order' => $order->id, 'error' => $e->getMessage()]);
             }
             
             $count++;
+        }
+        
+        // Update last expired check
+        if ($count > 0) {
+            Cache::put('last_expired_check', $now->format('H:i:s'), 3600);
         }
         
         $this->info("{$count} expired orders have been cancelled.");
