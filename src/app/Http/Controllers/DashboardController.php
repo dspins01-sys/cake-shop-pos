@@ -184,29 +184,17 @@ class DashboardController extends Controller
     /**
  * Check if scheduler is running (based on last activity)
  */
+/**
+ * Check if scheduler is running
+ */
 private function checkScheduler()
 {
     try {
-        // Cek log terakhir scheduler
-        $lastLog = Cache::get('scheduler_last_run', null);
-        
-        if ($lastLog && now()->diffInMinutes($lastLog) < 5) {
+        // Cek dari cache last run
+        $lastRun = Cache::get('scheduler_last_run');
+        if ($lastRun && now()->diffInMinutes($lastRun) < 10) {
             return 'Running';
         }
-        
-        // Alternative: cek apakah ada file log yang baru di-update
-        $logFile = storage_path('logs/scheduler.log');
-        if (file_exists($logFile) && (time() - filemtime($logFile)) < 300) {
-            return 'Running';
-        }
-        
-        // Cek dari container via HTTP request (optional)
-        // Bisa juga cek dari proses yang jalan
-        $output = shell_exec('ps aux | grep "orders:cancel-expired" | grep -v grep');
-        if ($output) {
-            return 'Running';
-        }
-        
         return 'Not Running';
     } catch (\Exception $e) {
         return 'Unknown';
@@ -219,16 +207,22 @@ private function checkScheduler()
 private function checkQueue()
 {
     try {
-        // Cek apakah ada pending jobs yang terproses
-        $lastQueueJob = Cache::get('queue_last_job', null);
-        
-        if ($lastQueueJob && now()->diffInMinutes($lastQueueJob) < 10) {
+        // Cek apakah ada queue worker dengan cek redis
+        $pendingJobs = Redis::llen('queues:default');
+        // Kalo ada pending jobs atau queue worker jalan, dianggap active
+        if ($pendingJobs > 0) {
             return 'Active';
         }
         
-        // Cek dari proses
-        $output = shell_exec('ps aux | grep "queue:work" | grep -v grep');
-        if ($output) {
+        // Cek last queue job
+        $lastJob = Cache::get('queue_last_job');
+        if ($lastJob && now()->diffInMinutes($lastJob) < 10) {
+            return 'Active';
+        }
+        
+        // Alternative: cek container via process (coba yang ringan)
+        $output = shell_exec('ps aux 2>/dev/null | grep "queue:work" | grep -v grep');
+        if ($output && strlen($output) > 10) {
             return 'Active';
         }
         
