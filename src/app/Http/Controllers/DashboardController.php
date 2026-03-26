@@ -34,28 +34,11 @@ class DashboardController extends Controller
             ->count();
         
         // Last expired check - ambil dari log atau cache
-        $lastExpiredCheck = Cache::get('last_expired_check', 'Today');
+        $lastExpiredCheck = Cache::get('last_expired_check', 'Never');
         
-        // Update last check time
-        if ($expiredOrdersToday > 0) {
-            Cache::put('last_expired_check', now()->format('H:i:s'), 3600);
-        }
-        
-        // Queue stats
-        $pendingJobs = 0;
-        $processedJobsToday = Cache::get('processed_jobs_today', 0);
-        
-        try {
-            // Cek queue size dari Redis
-            $pendingJobs = Redis::llen('queues:default');
-        } catch (\Exception $e) {
-            $pendingJobs = 0;
-        }
-        
-        // System status - check container langsung
+        // System status
         $systemStatus = [
             'scheduler' => $this->checkScheduler(),
-            'queue' => $this->checkQueue(),
             'redis' => $this->checkRedis(),
             'mysql' => $this->checkMySQL(),
         ];
@@ -68,8 +51,6 @@ class DashboardController extends Controller
             'lowStockProducts',
             'expiredOrdersToday',
             'lastExpiredCheck',
-            'pendingJobs',
-            'processedJobsToday',
             'systemStatus'
         ));
     }
@@ -86,19 +67,11 @@ class DashboardController extends Controller
                 ->whereDate('updated_at', today())
                 ->count();
             
-            // Update last check time
-            if ($expiredOrdersToday > 0) {
-                Cache::put('last_expired_check', now()->format('H:i:s'), 3600);
-            }
-            
             return response()->json([
                 'expired_orders_today' => $expiredOrdersToday,
-                'last_expired_check' => Cache::get('last_expired_check', 'Today'),
-                'pending_jobs' => Redis::llen('queues:default'),
-                'processed_jobs_today' => Cache::get('processed_jobs_today', 0),
+                'last_expired_check' => Cache::get('last_expired_check', 'Never'),
                 'system_status' => [
                     'scheduler' => $this->checkScheduler(),
-                    'queue' => $this->checkQueue(),
                     'redis' => $this->checkRedis(),
                     'mysql' => $this->checkMySQL(),
                 ]
@@ -109,34 +82,6 @@ class DashboardController extends Controller
                 'message' => $e->getMessage()
             ], 500);
         }
-    }
-    
-    /**
-     * Run manual task
-     */
-    public function runTask(Request $request)
-    {
-        $task = $request->task;
-        
-        if ($task === 'orders:cancel-expired') {
-            // Run expired check manually
-            \Artisan::call('orders:cancel-expired');
-            $output = \Artisan::output();
-            
-            // Update last check time
-            Cache::put('last_expired_check', now()->format('H:i:s'), 3600);
-            
-            return response()->json([
-                'success' => true,
-                'message' => 'Expired orders check completed',
-                'output' => $output
-            ]);
-        }
-        
-        return response()->json([
-            'success' => false,
-            'message' => 'Unknown task'
-        ]);
     }
     
     /**
@@ -158,49 +103,25 @@ class DashboardController extends Controller
     }
     
     /**
-     * Restart queue worker
+     * Check if scheduler is running
      */
-    public function restartQueue()
+    private function checkScheduler()
     {
         try {
-            // Restart queue worker container
-            shell_exec('docker restart cake-queue 2>/dev/null');
-            
-            return response()->json([
-                'success' => true,
-                'message' => 'Queue worker restarted successfully'
-            ]);
+            // Cek dari cache last run
+            $lastRun = Cache::get('scheduler_last_run');
+            if ($lastRun) {
+                $lastRunTime = \Carbon\Carbon::parse($lastRun);
+                if (now()->diffInMinutes($lastRunTime) < 10) {
+                    return 'Running';
+                }
+            }
+            return 'Not Running';
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to restart queue worker: ' . $e->getMessage()
-            ]);
+            return 'Unknown';
         }
     }
     
-    /**
-     * Check if scheduler is running (container based)
-     */
-    /**
- * Check if scheduler is running (based on last activity)
- */
-/**
- * Check if scheduler is running
- */
-private function checkScheduler()
-{
-    try {
-        // Cek dari cache last run
-        $lastRun = Cache::get('scheduler_last_run');
-        if ($lastRun && now()->diffInMinutes($lastRun) < 10) {
-            return 'Running';
-        }
-        return 'Not Running';
-    } catch (\Exception $e) {
-        return 'Unknown';
-    }
-}
-
     /**
      * Check Redis connection
      */
