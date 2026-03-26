@@ -67,11 +67,19 @@ class DashboardController extends Controller
                 ->whereDate('updated_at', today())
                 ->count();
             
+            // Update last check time
+            if ($expiredOrdersToday > 0) {
+                Cache::put('last_expired_check', now()->format('H:i:s'), 3600);
+            }
+            
             return response()->json([
                 'expired_orders_today' => $expiredOrdersToday,
-                'last_expired_check' => Cache::get('last_expired_check', 'Never'),
+                'last_expired_check' => Cache::get('last_expired_check', 'Today'),
+                'pending_jobs' => Redis::llen('queues:default'),
+                'processed_jobs_today' => Cache::get('processed_jobs_today', 0),
                 'system_status' => [
                     'scheduler' => $this->checkScheduler(),
+                    'queue' => $this->checkQueue(),
                     'redis' => $this->checkRedis(),
                     'mysql' => $this->checkMySQL(),
                 ]
