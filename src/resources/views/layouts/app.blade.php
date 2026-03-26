@@ -107,6 +107,16 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('home') }}">Home</a>
                     </li>
+                    
+                    @auth
+                        @if(Auth::user()->role == 'admin')
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('dashboard') }}">
+                                    <i class="fas fa-tachometer-alt me-1"></i> Dashboard
+                                </a>
+                            </li>
+                        @endif
+                    @endauth
                 </ul>
 
                 <!-- Right Menu - User & Cart -->
