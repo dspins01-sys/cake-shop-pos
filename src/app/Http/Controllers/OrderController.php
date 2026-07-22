@@ -379,4 +379,4 @@ class OrderController extends Controller
         return redirect()->route('admin.orders.index')
             ->with('success', "Reset total! $restoredCount item stok dikembalikan. Semua order dihapus.");
     }
-} // <-- INI PENTING! Tutup class
+} 
