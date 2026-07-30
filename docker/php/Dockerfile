@@ -1,5 +1,6 @@
 ARG PHP_VERSION=8.4
-FROM php:${PHP_VERSION}-fpm
+#FROM php:${PHP_VERSION}-fpm
+FROM php:${PHP_VERSION}-apache
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
@@ -45,5 +46,7 @@ RUN chown -R www-data:www-data /var/www/html \
 
 USER www-data
 
-EXPOSE 9000
-CMD ["php-fpm"]
+#EXPOSE 9000
+#CMD ["php-fpm"]
+EXPOSE 80
+CMD ["apache2-foreground"]
