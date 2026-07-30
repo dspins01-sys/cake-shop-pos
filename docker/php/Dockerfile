@@ -35,7 +35,7 @@ RUN pecl install redis \
 # 3. Aktifkan modul mod_rewrite Apache untuk routing Laravel
 RUN a2enmod rewrite
 
-# 4. MEMPERBAIKI TYPO: Ubah DocumentRoot Apache agar mengarah ke folder /public
+# 4. Ubah DocumentRoot Apache agar mengarah ke folder /public milik Laravel
 RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/default-ssl.conf
 
 # 5. Tambahkan izin AllowOverride agar file .htaccess Laravel bekerja (Mencegah 404)
@@ -51,8 +51,13 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set direktori kerja utama
 WORKDIR /var/www/html
 
-# Menyalin seluruh kode aplikasi Anda dari repositori ke dalam container
-COPY --chown=www-data:www-data . /var/www/html
+# =========================================================================
+# ⚠️ BAGIAN INI DIPERBAIKI: Pastikan penyalinan menggunakan hak akses ROOT
+# =========================================================================
+USER root
+
+# Paksa salin seluruh file proyek dari Dokploy ke dalam container
+COPY . /var/www/html
 
 # Fix konfigurasi untuk psysh (Laravel Tinker)
 RUN mkdir -p /.config/psysh && chmod 777 /.config/psysh
@@ -63,7 +68,7 @@ RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html \
     && if [ -d "/var/www/html/storage" ]; then chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache; fi
 
-# Beralih ke user non-root demi keamanan
+# Beralih ke user www-data demi keamanan setelah semua file sukses tersalin
 USER www-data
 
 # Membuka port web 80 Apache
