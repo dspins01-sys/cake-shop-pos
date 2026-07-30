@@ -35,10 +35,17 @@ RUN pecl install redis \
 # 3. Aktifkan modul mod_rewrite Apache untuk routing Laravel
 RUN a2enmod rewrite
 
-# 4. Ubah DocumentRoot Apache agar langsung mengarah ke folder /public milik Laravel
+# 4. MEMPERBAIKI TYPO: Ubah DocumentRoot Apache agar mengarah ke folder /public
 RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/default-ssl.conf
 
-# 5. Install Composer terbaru
+# 5. Tambahkan izin AllowOverride agar file .htaccess Laravel bekerja (Mencegah 404)
+RUN echo '<Directory /var/www/html/public>\n\
+    Options Indexes FollowSymLinks\n\
+    AllowOverride All\n\
+    Require all granted\n\
+</Directory>' >> /etc/apache2/apache2.conf
+
+# 6. Install Composer terbaru
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Set direktori kerja utama
@@ -46,9 +53,6 @@ WORKDIR /var/www/html
 
 # Menyalin seluruh kode aplikasi Anda dari repositori ke dalam container
 COPY --chown=www-data:www-data . /var/www/html
-
-# 6. Jalankan instalasi dependensi Laravel (opsional, sesuaikan dengan alur deploy Anda)
-# RUN composer install --no-interaction --optimize-autoloader --no-dev
 
 # Fix konfigurasi untuk psysh (Laravel Tinker)
 RUN mkdir -p /.config/psysh && chmod 777 /.config/psysh
