@@ -19,6 +19,10 @@ services:
         WORKDIR /var/www/html
         # ⚠️ KUNCI UTAMA: Kita copy folder src dari Git Clone Dokploy langsung ke dalem image saat build!
         COPY ./src /var/www/html
+        # =========================================================================
+        # ⚠️ TAMBAHKAN BARIS INI: Paksa Docker jalankan Composer Install saat build
+        # =========================================================================
+        RUN composer install --no-interaction --optimize-autoloader --no-dev
         RUN chown -R www-data:www-data /var/www/html && chmod -R 755 /var/www/html
         RUN if [ -d "/var/www/html/storage" ]; then chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache; fi
         USER www-data
