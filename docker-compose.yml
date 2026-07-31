@@ -96,3 +96,4 @@ volumes:
 networks:
   cake-network:
     driver: overlay # DIUBAH KE OVERLAY: Wajib untuk sistem Docker Swarm Dokploy
+    attachable: true
