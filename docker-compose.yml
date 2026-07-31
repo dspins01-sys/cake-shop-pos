@@ -67,8 +67,11 @@ services:
     networks:
      - cake-network
 
+   # ... bagian service app, wa-service, redis di atas biarkan saja ...
+
+  # MySQL Database (Ubah ke MariaDB biar enteng dan langsung auto-create di Dokploy)
   mysql:
-    image: mysql:8.0
+    image: mariadb:10.11
     command: --default-time-zone='+07:00'
     environment:
       MYSQL_DATABASE: cake_shop
@@ -79,7 +82,7 @@ services:
       - mysql_data:/var/lib/mysql
     networks:
       - cake-network
-
+      
 volumes:
   mysql_data:
   wa-session:
