@@ -14,6 +14,7 @@ services:
       - mysql
     networks:
       - cake-network
+      - dokploy-network
 
   # WhatsApp Service - Port luar dilepas total agar aman dari bentrok port 3000 Dokploy
   wa-service:
