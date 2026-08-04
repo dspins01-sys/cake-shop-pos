@@ -17,12 +17,9 @@ services:
         RUN echo '<Directory /var/www/html/public>\n    Options Indexes FollowSymLinks\n    AllowOverride All\n    Require all granted\n</Directory>' >> /etc/apache2/apache2.conf
         COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
         WORKDIR /var/www/html
-        # ⚠️ KUNCI UTAMA: Kita copy folder src dari Git Clone Dokploy langsung ke dalem image saat build!
         COPY ./src /var/www/html
-        # =========================================================================
-        # ⚠️ TAMBAHKAN BARIS INI: Paksa Docker jalankan Composer Install saat build
-        # =========================================================================
         RUN composer install --no-interaction --optimize-autoloader --no-dev
+        RUN npm install && npm run build
         RUN chown -R www-data:www-data /var/www/html && chmod -R 755 /var/www/html
         RUN if [ -d "/var/www/html/storage" ]; then chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache; fi
         USER www-data
