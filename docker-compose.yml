@@ -1,5 +1,4 @@
 version: '3.8'
-
 services:
   # Kita pakai inline Dockerfile langsung di compose biar lu gak perlu push ke git lagi
   app:
@@ -17,9 +16,20 @@ services:
         RUN echo '<Directory /var/www/html/public>\n    Options Indexes FollowSymLinks\n    AllowOverride All\n    Require all granted\n</Directory>' >> /etc/apache2/apache2.conf
         COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
         WORKDIR /var/www/html
+        # ⚠️ KUNCI UTAMA: Kita copy folder src dari Git Clone Dokploy langsung ke dalem image saat build!
         COPY ./src /var/www/html
+        # =========================================================================
+        # ⚠️ Install dependency PHP
+        # =========================================================================
         RUN composer install --no-interaction --optimize-autoloader --no-dev
+        # =========================================================================
+        # ⚠️ Install dependency Node & build asset frontend (Vite)
+        # =========================================================================
         RUN npm install && npm run build
+        # =========================================================================
+        # ⚠️ Buat symlink storage biar file upload bisa diakses lewat browser
+        # =========================================================================
+        RUN php artisan storage:link
         RUN chown -R www-data:www-data /var/www/html && chmod -R 755 /var/www/html
         RUN if [ -d "/var/www/html/storage" ]; then chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache; fi
         USER www-data
@@ -27,8 +37,8 @@ services:
         CMD ["apache2-foreground"]
     ports:
       - "8082:80"
-       # =========================================================================
-    # ⚠️ REVISI BAGIAN INI: Daftarkan semua variabel biar dibaca sama Laravel
+    # =========================================================================
+    # ⚠️ Daftarkan semua variabel biar dibaca sama Laravel
     # =========================================================================
     environment:
       - APP_NAME=${APP_NAME:-CakeShop}
@@ -43,6 +53,12 @@ services:
       - DB_DATABASE=cake_shop
       - DB_USERNAME=cake_user
       - DB_PASSWORD=cake_password
+    # =========================================================================
+    # ⚠️ Volume ini penting biar file upload (foto produk dll) gak hilang
+    # tiap kali image di-rebuild / redeploy
+    # =========================================================================
+    volumes:
+      - storage_data:/var/www/html/storage/app/public
     depends_on:
       - mysql
       - redis
@@ -62,9 +78,7 @@ services:
   redis:
     image: redis:7-alpine
     networks:
-     - cake-network
-
-   # ... bagian service app, wa-service, redis di atas biarkan saja ...
+      - cake-network
 
   # MySQL Database (Ubah ke MariaDB biar enteng dan langsung auto-create di Dokploy)
   mysql:
@@ -79,10 +93,11 @@ services:
       - mysql_data:/var/lib/mysql
     networks:
       - cake-network
-      
+
 volumes:
   mysql_data:
   wa-session:
+  storage_data:
 
 networks:
   cake-network:
