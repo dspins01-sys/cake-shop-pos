@@ -59,6 +59,12 @@ USER root
 # Paksa salin seluruh file proyek dari Dokploy ke dalam container
 COPY . /var/www/html
 
+# 6.5 Install dependency PHP (Composer)
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+# 6.6 Install dependency Node & build asset frontend (Vite)
+RUN npm install && npm run build
+
 # Fix konfigurasi untuk psysh (Laravel Tinker)
 RUN mkdir -p /.config/psysh && chmod 777 /.config/psysh
 ENV HOME=/var/www/html
@@ -73,4 +79,5 @@ USER www-data
 
 # Membuka port web 80 Apache
 EXPOSE 80
+
 CMD ["apache2-foreground"]
