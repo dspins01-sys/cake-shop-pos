@@ -57,7 +57,7 @@ class MidtransController extends Controller
      */
     public function simulatePaid(Order $order): JsonResponse
     {
-        abort_unless(!config('payment.midtrans.is_production'), 404);
+        abort_unless(!config('payment.midtrans.production'), 404);
 
         $notification = [
             'status_code' => '200',
