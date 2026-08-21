@@ -13,13 +13,14 @@ class Order extends Model
         'shipping_district', 'courier', 'courier_service', 'shipping_etd',
         'status', 'payment_method', 'payment_status', 'payment_proof', 'paid_at',
         'midtrans_token', 'midtrans_transaction_id', 'midtrans_payment_type',
-        'midtrans_status', 'midtrans_paid_at', 'notes', 'admin_notes', 'expired_at',
+        'midtrans_status', 'midtrans_paid_at', 'wa_payment_notified_at', 'notes', 'admin_notes', 'expired_at',
         'user_id'
     ];
 
     protected $casts = [
         'paid_at' => 'datetime',
         'midtrans_paid_at' => 'datetime',
+        'wa_payment_notified_at' => 'datetime',
         'total' => 'decimal:2',
         'shipping_cost' => 'decimal:2',
     ];
