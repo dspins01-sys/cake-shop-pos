@@ -43,7 +43,7 @@
                             <div class="col-md-4 mb-3"><label class="form-label">Province *</label><select id="province" class="form-select"><option value="">Loading...</option></select></div>
                             <div class="col-md-4 mb-3"><label class="form-label">City *</label><select id="city" class="form-select" disabled><option value="">Select province first</option></select></div>
                             <div class="col-md-4 mb-3"><label class="form-label">District *</label><select id="district" class="form-select" disabled><option value="">Select city first</option></select></div>
-                            <div class="col-md-6 mb-3"><label class="form-label">Courier *</label><select id="courier" class="form-select" disabled><option value="">Select courier</option><option value="jne">JNE</option><option value="jnt">J&T</option><option value="sicepat">SiCepat</option><option value="anteraja">AnterAja</option></select></div>
+                            <div class="col-md-6 mb-3"><label class="form-label">Courier *</label><select id="courier" class="form-select" disabled><option value="">Select courier</option></select></div>
                             <div class="col-md-6 mb-3"><label class="form-label">Service *</label><select id="service" class="form-select" disabled><option value="">Select courier first</option></select></div>
                         </div>
                         <div id="shipping-status" class="small text-muted">Package weight: <strong>{{ number_format($weight) }} gram</strong></div>
@@ -113,27 +113,35 @@ const baseTotal = {{ (int) round($total * 1.10) }};
 const money = value => 'Rp ' + Number(value).toLocaleString('id-ID');
 async function json(url, options = {}) { const r = await fetch(url, {headers:{'Accept':'application/json'}, ...options}); const d = await r.json(); if(!r.ok) throw new Error(d.message || 'Request gagal'); return d.data || []; }
 function reset(el, text) { el.innerHTML = `<option value="">${text}</option>`; el.disabled = true; }
+function resetCourier() {
+    courier.innerHTML = '<option value="">Select courier</option><option value="jne">JNE</option><option value="jnt">J&T</option><option value="sicepat">SiCepat</option><option value="anteraja">AnterAja</option>';
+    courier.disabled = true;
+    courierValue.value = '';
+    serviceValue.value = '';
+}
+
+resetCourier();
 
 (async () => {
     try {
         const data = await json('/shipping/provinces');
         province.innerHTML = '<option value="">Select province</option>' + data.map(x => `<option value="${x.id}" data-name="${x.name}">${x.name}</option>`).join('');
-    } catch(e) { province.innerHTML = '<option value="">RajaOngkir unavailable</option>'; }
+    } catch(e) { console.error('RajaOngkir provinces error:', e); province.innerHTML = '<option value="">RajaOngkir unavailable</option>'; }
 })();
 
 province.addEventListener('change', async () => {
-    reset(city, 'Loading...'); reset(district, 'Select city first'); reset(courier, 'Select courier'); reset(service, 'Select courier first');
+    reset(city, 'Loading...'); reset(district, 'Select city first'); resetCourier(); reset(service, 'Select courier first');
     const selected = province.options[province.selectedIndex];
     document.getElementById('shipping_province').value = selected?.dataset.name || '';
     if(!province.value) return;
-    try { const data = await json('/shipping/cities/' + province.value); city.innerHTML = '<option value="">Select city</option>' + data.map(x => `<option value="${x.id}" data-name="${x.name}">${x.name}</option>`).join(''); city.disabled=false; } catch(e) { reset(city, 'Failed to load cities'); }
+    try { const data = await json('/shipping/cities/' + province.value); city.innerHTML = '<option value="">Select city</option>' + data.map(x => `<option value="${x.id}" data-name="${x.name}">${x.name}</option>`).join(''); city.disabled=false; } catch(e) { console.error('RajaOngkir cities error:', e); reset(city, 'Failed to load cities'); }
 });
 
 city.addEventListener('change', async () => {
-    reset(district, 'Loading...'); reset(courier, 'Select courier'); reset(service, 'Select courier first');
+    reset(district, 'Loading...'); resetCourier(); reset(service, 'Select courier first');
     const selected = city.options[city.selectedIndex]; document.getElementById('shipping_city').value = selected?.dataset.name || '';
     if(!city.value) return;
-    try { const data = await json('/shipping/districts/' + city.value); district.innerHTML = '<option value="">Select district</option>' + data.map(x => `<option value="${x.id}" data-name="${x.name}">${x.name}</option>`).join(''); district.disabled=false; } catch(e) { reset(district, 'Failed to load districts'); }
+    try { const data = await json('/shipping/districts/' + city.value); district.innerHTML = '<option value="">Select district</option>' + data.map(x => `<option value="${x.id}" data-name="${x.name}">${x.name}</option>`).join(''); district.disabled=false; } catch(e) { console.error('RajaOngkir districts error:', e); reset(district, 'Failed to load districts'); }
 });
 
 district.addEventListener('change', () => {
@@ -141,7 +149,10 @@ district.addEventListener('change', () => {
     document.getElementById('shipping_district').value = selected?.dataset.name || '';
     destination.value = district.value || '';
     courier.disabled = !district.value;
-    service.disabled = true; service.innerHTML = '<option value="">Select courier first</option>';
+    courierValue.value = '';
+    serviceValue.value = '';
+    service.disabled = true;
+    service.innerHTML = '<option value="">Select courier first</option>';
 });
 
 courier.addEventListener('change', async () => {
@@ -150,7 +161,7 @@ courier.addEventListener('change', async () => {
     try {
         const data = await json('/shipping/costs', {method:'POST', headers:{'Content-Type':'application/json','X-CSRF-TOKEN':@json(csrf_token()),'Accept':'application/json'}, body:JSON.stringify({destination_id:district.value,weight,courier:courier.value})});
         service.innerHTML = '<option value="">Select service</option>' + data.map(x => `<option value="${x.service}" data-cost="${x.cost}" data-etd="${x.etd || ''}">${x.service} — ${money(x.cost)} (${x.etd || '-'} day)</option>`).join(''); service.disabled=false;
-    } catch(e) { reset(service, 'Failed to load services'); }
+    } catch(e) { console.error('RajaOngkir costs error:', e); reset(service, 'Failed to load services'); }
 });
 
 service.addEventListener('change', () => {
