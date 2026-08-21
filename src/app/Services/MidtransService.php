@@ -31,6 +31,19 @@ class MidtransService
             ];
         }
 
+        // Tax is already included in order->total. Include it as a separate line
+        // so Midtrans item_details add up to the exact gross amount.
+        $productAndShippingTotal = $order->items->sum(fn ($item) => $item->product_price * $item->quantity) + (int) $order->shipping_cost;
+        $tax = (int) $order->total - (int) $productAndShippingTotal;
+        if ($tax > 0) {
+            $items[] = [
+                'id' => 'TAX',
+                'price' => $tax,
+                'quantity' => 1,
+                'name' => 'Tax',
+            ];
+        }
+
         $payload = [
             'transaction_details' => [
                 'order_id' => $order->order_number,
@@ -46,7 +59,7 @@ class MidtransService
                 ],
             ],
             'callbacks' => [
-                'finish' => route('order.success', $order),
+                'finish' => route('payment.midtrans.finish', $order),
             ],
         ];
 
