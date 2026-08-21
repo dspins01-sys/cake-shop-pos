@@ -20,7 +20,6 @@ Route::prefix('cart')->name('cart.')->group(function () {
     Route::post('/checkout/process', [App\Http\Controllers\CartController::class, 'process'])->name('checkout.process');
 });
 
-// RajaOngkir - public checkout helpers
 Route::prefix('shipping')->name('shipping.')->group(function () {
     Route::get('/provinces', [App\Http\Controllers\ShippingController::class, 'provinces'])->name('provinces');
     Route::get('/cities/{provinceId}', [App\Http\Controllers\ShippingController::class, 'cities'])->name('cities');
@@ -28,7 +27,7 @@ Route::prefix('shipping')->name('shipping.')->group(function () {
     Route::post('/costs', [App\Http\Controllers\ShippingController::class, 'costs'])->name('costs');
 });
 
-// Midtrans
+Route::get('/payment/midtrans/{order}', [App\Http\Controllers\PaymentController::class, 'midtrans'])->name('payment.midtrans');
 Route::post('/payment/midtrans/token/{order}', [App\Http\Controllers\MidtransController::class, 'token'])->name('midtrans.token');
 Route::post('/payment/midtrans/notification', [App\Http\Controllers\MidtransController::class, 'notification'])->name('midtrans.notification');
 
@@ -55,9 +54,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::resource('products', App\Http\Controllers\Admin\ProductController::class);
 });
 
-Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware(['auth', 'admin'])
-    ->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'admin'])->name('dashboard');
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/scheduler/status', [App\Http\Controllers\DashboardController::class, 'schedulerStatus'])->name('scheduler.status');
