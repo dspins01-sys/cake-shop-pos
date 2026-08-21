@@ -1,6 +1,5 @@
 version: '3.8'
 services:
-  # Kita pakai inline Dockerfile langsung di compose biar lu gak perlu push ke git lagi
   app:
     build:
       context: .
@@ -16,44 +15,29 @@ services:
         RUN echo '<Directory /var/www/html/public>\n    Options Indexes FollowSymLinks\n    AllowOverride All\n    Require all granted\n</Directory>' >> /etc/apache2/apache2.conf
         COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
         WORKDIR /var/www/html
-        # ⚠️ KUNCI UTAMA: Kita copy folder src dari Git Clone Dokploy langsung ke dalem image saat build!
         COPY ./src /var/www/html
-        # =========================================================================
-        # ⚠️ Install dependency PHP
-        # =========================================================================
         RUN composer install --no-interaction --optimize-autoloader --no-dev
-        # =========================================================================
-        # ⚠️ Install dependency Node & build asset frontend (Vite)
-        # =========================================================================
         RUN npm install && npm run build
-        # =========================================================================
-        # ⚠️ Buat symlink storage biar file upload bisa diakses lewat browser
-        # =========================================================================
         RUN php artisan storage:link
         RUN chown -R www-data:www-data /var/www/html && chmod -R 755 /var/www/html
         RUN if [ -d "/var/www/html/storage" ]; then chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache; fi
         USER www-data
         EXPOSE 80
-        CMD ["apache2-foreground"]
+        CMD ["sh", "-c", "until php artisan migrate --force; do echo 'Waiting for MySQL or migration readiness...'; sleep 5; done; php artisan optimize:clear; exec apache2-foreground"]
     ports:
       - "8082:80"
-    # =========================================================================
-    # ⚠️ Daftarkan semua variabel biar dibaca sama Laravel
-    # =========================================================================
     environment:
       - APP_NAME=${APP_NAME:-CakeShop}
       - APP_ENV=${APP_ENV:-local}
       - APP_KEY=${APP_KEY}
       - APP_DEBUG=${APP_DEBUG:-true}
       - APP_URL=${APP_URL}
-      # Sekaligus kita daftarkan variabel database biar nanti gak error koneksi
       - DB_CONNECTION=mysql
       - DB_HOST=mysql
       - DB_PORT=3306
       - DB_DATABASE=cake_shop
       - DB_USERNAME=cake_user
       - DB_PASSWORD=cake_password
-       # Tambahin blok ini:
       - REDIS_CLIENT=phpredis
       - REDIS_HOST=redis
       - REDIS_PORT=6379
@@ -61,10 +45,14 @@ services:
       - CACHE_STORE=redis
       - SESSION_DRIVER=redis
       - QUEUE_CONNECTION=redis
-    # =========================================================================
-    # ⚠️ Volume ini penting biar file upload (foto produk dll) gak hilang
-    # tiap kali image di-rebuild / redeploy
-    # =========================================================================
+      - MIDTRANS_SERVER_KEY=${MIDTRANS_SERVER_KEY}
+      - MIDTRANS_CLIENT_KEY=${MIDTRANS_CLIENT_KEY}
+      - MIDTRANS_IS_PRODUCTION=${MIDTRANS_IS_PRODUCTION:-false}
+      - RAJAONGKIR_API_KEY=${RAJAONGKIR_API_KEY}
+      - RAJAONGKIR_BASE_URL=${RAJAONGKIR_BASE_URL:-https://rajaongkir.komerce.id/api/v1}
+      - RAJAONGKIR_ORIGIN_ID=${RAJAONGKIR_ORIGIN_ID}
+      - RAJAONGKIR_COURIERS=${RAJAONGKIR_COURIERS:-jne:jnt:sicepat:anteraja}
+      - RAJAONGKIR_DEFAULT_WEIGHT_GRAM=${RAJAONGKIR_DEFAULT_WEIGHT_GRAM:-1000}
     volumes:
       - storage_data:/var/www/html/storage/app/public
     depends_on:
@@ -88,7 +76,6 @@ services:
     networks:
       - cake-network
 
-  # MySQL Database (Ubah ke MariaDB biar enteng dan langsung auto-create di Dokploy)
   mysql:
     image: mariadb:10.11
     command: --default-time-zone='+07:00'

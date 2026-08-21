@@ -7,235 +7,86 @@
     <h1 class="mb-4">Checkout</h1>
 
     @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            {{ session('error') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
+        <div class="alert alert-danger">{{ session('error') }}</div>
+    @endif
+    @if($errors->any())
+        <div class="alert alert-danger"><ul class="mb-0">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>
     @endif
 
-   <form method="POST" action="{{ url('/cart/checkout/process') }}" enctype="multipart/form-data">
+    <form method="POST" action="{{ route('cart.checkout.process') }}" enctype="multipart/form-data">
         @csrf
-        
-        <div class="row">
-            <div class="col-md-8">
-                <!-- Customer Information -->
-                <div class="card mb-4">
-                    <div class="card-header bg-white">
-                        <h5 class="mb-0">
-                            <i class="fas fa-user me-2 text-primary"></i>
-                            Customer Information
-                        </h5>
-                    </div>
+        <input type="hidden" name="shipping_destination_id" id="shipping_destination_id">
+        <input type="hidden" name="shipping_province" id="shipping_province">
+        <input type="hidden" name="shipping_city" id="shipping_city">
+        <input type="hidden" name="shipping_district" id="shipping_district">
+        <input type="hidden" name="courier" id="courier_value">
+        <input type="hidden" name="courier_service" id="courier_service_value">
+
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="card mb-4 shadow-sm border-0">
+                    <div class="card-header bg-white"><h5 class="mb-0">Customer Information</h5></div>
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="customer_name" class="form-label">Full Name <span class="text-danger">*</span></label>
-                                <input type="text" 
-                                       class="form-control @error('customer_name') is-invalid @enderror" 
-                                       id="customer_name" 
-                                       name="customer_name" 
-                                       value="{{ old('customer_name') }}" 
-                                       required>
-                                @error('customer_name')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="customer_email" class="form-label">Email <span class="text-danger">*</span></label>
-                                <input type="email" 
-                                       class="form-control @error('customer_email') is-invalid @enderror" 
-                                       id="customer_email" 
-                                       name="customer_email" 
-                                       value="{{ old('customer_email') }}" 
-                                       required>
-                                @error('customer_email')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="customer_phone" class="form-label">Phone Number <span class="text-danger">*</span></label>
-                                <input type="tel" 
-                                       class="form-control @error('customer_phone') is-invalid @enderror" 
-                                       id="customer_phone" 
-                                       name="customer_phone" 
-                                       value="{{ old('customer_phone') }}" 
-                                       placeholder="081234567890"
-                                       oninput="formatPhoneNumber(this)"
-                                       required>
-                                <small class="text-muted">Akan otomatis dikonversi ke format 62 (contoh: 6281234567890)</small>
-                                @error('customer_phone')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="col-12 mb-3">
-                                <label for="address" class="form-label">Delivery Address <span class="text-danger">*</span></label>
-                                <textarea class="form-control @error('address') is-invalid @enderror" 
-                                          id="address" 
-                                          name="address" 
-                                          rows="3" 
-                                          required>{{ old('address') }}</textarea>
-                                @error('address')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
+                            <div class="col-md-6 mb-3"><label class="form-label">Full Name *</label><input class="form-control" name="customer_name" value="{{ old('customer_name') }}" required></div>
+                            <div class="col-md-6 mb-3"><label class="form-label">Email *</label><input type="email" class="form-control" name="customer_email" value="{{ old('customer_email') }}" required></div>
+                            <div class="col-md-6 mb-3"><label class="form-label">Phone *</label><input class="form-control" name="customer_phone" value="{{ old('customer_phone') }}" required></div>
+                            <div class="col-12 mb-3"><label class="form-label">Delivery Address *</label><textarea class="form-control" name="address" rows="3" required>{{ old('address') }}</textarea></div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Payment Method -->
-                <div class="card mb-4">
-                    <div class="card-header bg-white">
-                        <h5 class="mb-0">
-                            <i class="fas fa-credit-card me-2 text-primary"></i>
-                            Payment Method
-                        </h5>
+                <div class="card mb-4 shadow-sm border-0">
+                    <div class="card-header bg-white"><h5 class="mb-0">Shipping</h5></div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3"><label class="form-label">Province *</label><select id="province" class="form-select"><option value="">Loading...</option></select></div>
+                            <div class="col-md-4 mb-3"><label class="form-label">City *</label><select id="city" class="form-select" disabled><option value="">Select province first</option></select></div>
+                            <div class="col-md-4 mb-3"><label class="form-label">District *</label><select id="district" class="form-select" disabled><option value="">Select city first</option></select></div>
+                            <div class="col-md-6 mb-3"><label class="form-label">Courier *</label><select id="courier" class="form-select" disabled><option value="">Select courier</option></select></div>
+                            <div class="col-md-6 mb-3"><label class="form-label">Service *</label><select id="service" class="form-select" disabled><option value="">Select courier first</option></select></div>
+                        </div>
+                        <div id="shipping-status" class="small text-muted">Package weight: <strong>{{ number_format($weight) }} gram</strong></div>
                     </div>
+                </div>
+
+                <div class="card mb-4 shadow-sm border-0">
+                    <div class="card-header bg-white"><h5 class="mb-0">Payment Method</h5></div>
                     <div class="card-body">
                         <div class="form-check mb-3">
-                            <input class="form-check-input" type="radio" name="payment_method" id="manual" value="manual" checked>
-                            <label class="form-check-label" for="manual">
-                                <strong>Manual Bank Transfer</strong>
-                                <p class="text-muted small mb-0">Transfer ke rekening bank kami, lalu upload bukti pembayaran</p>
-                            </label>
+                            <input class="form-check-input" type="radio" name="payment_method" id="midtrans" value="midtrans" checked>
+                            <label class="form-check-label" for="midtrans"><strong>Midtrans</strong><div class="text-muted small">QRIS, GoPay, bank transfer, e-wallet, kartu, dan metode yang tersedia di akun Midtrans.</div></label>
                         </div>
-
-                        <!-- Bank Info (akan tampil kalo pilih manual) -->
-                        <div id="bankInfo" class="mt-3 p-4 bg-light rounded border">
-                            <h6 class="mb-3"><i class="fas fa-university me-2"></i>Bank Account Details:</h6>
-                            
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <div class="p-3 bg-white rounded">
-                                        <img src="https://upload.wikimedia.org/wikipedia/commons/5/5c/Bank_Central_Asia.svg" 
-                                             alt="BCA" style="height: 30px; margin-bottom: 10px;">
-                                        <p class="mb-1"><strong>Bank BCA</strong></p>
-                                        <p class="mb-1">Account No: <strong class="text-primary">1234567890</strong></p>
-                                        <p class="mb-0">Account Name: <strong>Creme&Crumb Bakery</strong></p>
-                                    </div>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <div class="p-3 bg-white rounded">
-                                        <img src="https://upload.wikimedia.org/wikipedia/commons/a/ad/Bank_Mandiri_logo_2016.svg" 
-                                             alt="Mandiri" style="height: 30px; margin-bottom: 10px;">
-                                        <p class="mb-1"><strong>Bank Mandiri</strong></p>
-                                        <p class="mb-1">Account No: <strong class="text-primary">12345678910</strong></p>
-                                        <p class="mb-0">Account Name: <strong>Creme&Crumb Bakery</strong></p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="alert alert-warning mt-2 mb-0">
-                                <i class="fas fa-info-circle me-2"></i>
-                                <strong>Important:</strong> After making payment, please upload your transfer receipt/proof below.
-                                Your order will be processed after payment confirmation.
-                            </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="payment_method" id="manual" value="manual">
+                            <label class="form-check-label" for="manual"><strong>Manual Bank Transfer</strong><div class="text-muted small">Upload bukti transfer setelah order dibuat.</div></label>
                         </div>
-
-                        <!-- Payment Proof Upload (tampil setelah pilih manual) -->
-                        <div id="paymentProofSection" class="mt-4 p-3 border rounded" style="display: none;">
-                            <h6 class="mb-3"><i class="fas fa-cloud-upload-alt me-2"></i>Upload Payment Proof</h6>
-                            <div class="mb-3">
-                                <label for="payment_proof" class="form-label">Transfer Receipt (Image/PDF)</label>
-                                <input type="file" 
-                                       class="form-control @error('payment_proof') is-invalid @enderror" 
-                                       id="payment_proof" 
-                                       name="payment_proof" 
-                                       accept="image/*,.pdf">
-                                <small class="text-muted">Max file size: 2MB. Allowed: JPG, PNG, PDF</small>
-                                @error('payment_proof')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
+                        <div id="manualProof" class="mt-3 d-none"><label class="form-label">Payment Proof *</label><input type="file" class="form-control" name="payment_proof" accept="image/*,.pdf"></div>
                     </div>
                 </div>
 
-                <!-- Additional Notes -->
-                <div class="card mb-4">
-                    <div class="card-header bg-white">
-                        <h5 class="mb-0">
-                            <i class="fas fa-sticky-note me-2 text-primary"></i>
-                            Additional Notes (Optional)
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <textarea class="form-control" 
-                                  name="notes" 
-                                  rows="2" 
-                                  placeholder="Any special requests or notes for your order...">{{ old('notes') }}</textarea>
-                    </div>
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white"><h5 class="mb-0">Notes</h5></div>
+                    <div class="card-body"><textarea class="form-control" name="notes" rows="2" placeholder="Special request...">{{ old('notes') }}</textarea></div>
                 </div>
             </div>
 
-            <!-- Order Summary -->
-            <div class="col-md-4">
-                <div class="card sticky-top" style="top: 20px;">
-                    <div class="card-header bg-white">
-                        <h5 class="mb-0">
-                            <i class="fas fa-shopping-bag me-2 text-primary"></i>
-                            Order Summary
-                        </h5>
-                    </div>
+            <div class="col-lg-4">
+                <div class="card shadow-sm border-0 sticky-top" style="top:20px">
+                    <div class="card-header bg-white"><h5 class="mb-0">Order Summary</h5></div>
                     <div class="card-body">
-                        <!-- Cart Items -->
-                        <div class="mb-3">
-                            @foreach($cart as $item)
-                            <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
-                                <div>
-                                    <span class="fw-bold">{{ $item['name'] }}</span>
-                                    <span class="text-muted small d-block">Qty: {{ $item['quantity'] }}</span>
-                                </div>
-                                <span class="fw-bold">
-                                    Rp {{ number_format($item['price'] * $item['quantity'], 0, ',', '.') }}
-                                </span>
-                            </div>
-                            @endforeach
-                        </div>
-
-                        <!-- Price Calculation -->
-                        @php
-                            $subtotal = $total;
-                            $tax = $subtotal * 0.1; // 10% tax
-                            $grandTotal = $subtotal + $tax;
-                        @endphp
-
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Subtotal:</span>
-                            <span>Rp {{ number_format($subtotal, 0, ',', '.') }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Tax (10%):</span>
-                            <span>Rp {{ number_format($tax, 0, ',', '.') }}</span>
-                        </div>
+                        @foreach($cart as $item)
+                            <div class="d-flex justify-content-between mb-2"><span>{{ $item['name'] }} × {{ $item['quantity'] }}</span><strong>Rp {{ number_format($item['price'] * $item['quantity'], 0, ',', '.') }}</strong></div>
+                        @endforeach
+                        @php($tax = round($total * 0.10))
                         <hr>
-                        <div class="d-flex justify-content-between fw-bold fs-5">
-                            <span>Total:</span>
-                            <span class="text-danger">Rp {{ number_format($grandTotal, 0, ',', '.') }}</span>
-                        </div>
-
+                        <div class="d-flex justify-content-between"><span>Subtotal</span><span>Rp {{ number_format($total, 0, ',', '.') }}</span></div>
+                        <div class="d-flex justify-content-between"><span>Tax (10%)</span><span>Rp {{ number_format($tax, 0, ',', '.') }}</span></div>
+                        <div class="d-flex justify-content-between"><span>Shipping</span><span id="shipping-price">Rp 0</span></div>
                         <hr>
-
-                        <!-- Place Order Button -->
-                        <button type="submit" class="btn btn-primary w-100 py-3 mb-2">
-                            <i class="fas fa-check-circle me-2"></i>
-                            Place Order (Manual Transfer)
-                        </button>
-                        
-                        <a href="{{ route('cart.index') }}" class="btn btn-outline-secondary w-100">
-                            <i class="fas fa-arrow-left me-2"></i>
-                            Back to Cart
-                        </a>
-
-                        <!-- Security Note -->
-                        <div class="text-center mt-3">
-                            <small class="text-muted">
-                                <i class="fas fa-lock me-1"></i>
-                                Your information is secure
-                            </small>
-                        </div>
+                        <div class="d-flex justify-content-between fw-bold fs-5"><span>Total</span><span id="grand-total">Rp {{ number_format($total + $tax, 0, ',', '.') }}</span></div>
+                        <button class="btn btn-primary w-100 py-3 mt-3" type="submit"><i class="fas fa-lock me-2"></i>Continue to Payment</button>
+                        <a href="{{ route('cart.index') }}" class="btn btn-outline-secondary w-100 mt-2">Back to Cart</a>
                     </div>
                 </div>
             </div>
@@ -246,86 +97,78 @@
 
 @push('scripts')
 <script>
-    // Format nomor HP ke 62
-    function formatPhoneNumber(input) {
-        // Simpan posisi cursor
-        let cursorPos = input.selectionStart;
-        let oldLength = input.value.length;
-        
-        // Hapus semua karakter non-digit
-        let number = input.value.replace(/\D/g, '');
-        
-        // Jika dimulai dengan 0, ganti dengan 62
-        if (number.startsWith('0')) {
-            number = '62' + number.substring(1);
-        }
-        
-        // Jika dimulai dengan 62, biarkan
-        // Jika tidak dimulai 0 atau 62, tambah 62 di depan (asumsi nomor lokal tanpa kode)
-        if (!number.startsWith('62') && number.length > 0) {
-            number = '62' + number;
-        }
-        
-        // Update nilai input
-        input.value = number;
-        
-        // Sesuaikan posisi cursor (kurang lebih)
-        let newLength = input.value.length;
-        cursorPos = cursorPos + (newLength - oldLength);
-        input.setSelectionRange(cursorPos, cursorPos);
-    }
+const weight = @json($weight);
+const province = document.getElementById('province');
+const city = document.getElementById('city');
+const district = document.getElementById('district');
+const courier = document.getElementById('courier');
+const service = document.getElementById('service');
+const destination = document.getElementById('shipping_destination_id');
+const courierValue = document.getElementById('courier_value');
+const serviceValue = document.getElementById('courier_service_value');
+const shippingPrice = document.getElementById('shipping-price');
+const grandTotal = document.getElementById('grand-total');
+const baseTotal = {{ (int) round($total * 1.10) }};
 
-    // Toggle payment proof section
-    document.addEventListener('DOMContentLoaded', function() {
-        const manualRadio = document.getElementById('manual');
-        const paymentProofSection = document.getElementById('paymentProofSection');
-        
-        function togglePaymentProof() {
-            if (manualRadio.checked) {
-                paymentProofSection.style.display = 'block';
-            } else {
-                paymentProofSection.style.display = 'none';
-            }
-        }
-        
-        togglePaymentProof();
-        manualRadio.addEventListener('change', togglePaymentProof);
-        
-        // Format nomor HP jika sudah ada value (misal dari old input)
-        const phoneInput = document.getElementById('customer_phone');
-        if (phoneInput.value) {
-            formatPhoneNumber(phoneInput);
-        }
-    });
+const money = value => 'Rp ' + Number(value).toLocaleString('id-ID');
+async function json(url, options = {}) { const r = await fetch(url, {headers:{'Accept':'application/json'}, ...options}); const d = await r.json(); if(!r.ok) throw new Error(d.message || 'Request gagal'); return d.data || []; }
+function reset(el, text) { el.innerHTML = `<option value="">${text}</option>`; el.disabled = true; }
+function resetCourier() {
+    courier.innerHTML = '<option value="">Select courier</option><option value="jne">JNE</option><option value="jnt">J&T</option><option value="sicepat">SiCepat</option><option value="anteraja">AnterAja</option>';
+    courier.disabled = true;
+    courierValue.value = '';
+    serviceValue.value = '';
+}
+
+resetCourier();
+
+(async () => {
+    try {
+        const data = await json('/shipping/provinces');
+        province.innerHTML = '<option value="">Select province</option>' + data.map(x => `<option value="${x.id}" data-name="${x.name}">${x.name}</option>`).join('');
+    } catch(e) { console.error('RajaOngkir provinces error:', e); province.innerHTML = '<option value="">RajaOngkir unavailable</option>'; }
+})();
+
+province.addEventListener('change', async () => {
+    reset(city, 'Loading...'); reset(district, 'Select city first'); resetCourier(); reset(service, 'Select courier first');
+    const selected = province.options[province.selectedIndex];
+    document.getElementById('shipping_province').value = selected?.dataset.name || '';
+    if(!province.value) return;
+    try { const data = await json('/shipping/cities/' + province.value); city.innerHTML = '<option value="">Select city</option>' + data.map(x => `<option value="${x.id}" data-name="${x.name}">${x.name}</option>`).join(''); city.disabled=false; } catch(e) { console.error('RajaOngkir cities error:', e); reset(city, 'Failed to load cities'); }
+});
+
+city.addEventListener('change', async () => {
+    reset(district, 'Loading...'); resetCourier(); reset(service, 'Select courier first');
+    const selected = city.options[city.selectedIndex]; document.getElementById('shipping_city').value = selected?.dataset.name || '';
+    if(!city.value) return;
+    try { const data = await json('/shipping/districts/' + city.value); district.innerHTML = '<option value="">Select district</option>' + data.map(x => `<option value="${x.id}" data-name="${x.name}">${x.name}</option>`).join(''); district.disabled=false; } catch(e) { console.error('RajaOngkir districts error:', e); reset(district, 'Failed to load districts'); }
+});
+
+district.addEventListener('change', () => {
+    const selected = district.options[district.selectedIndex];
+    document.getElementById('shipping_district').value = selected?.dataset.name || '';
+    destination.value = district.value || '';
+    courier.disabled = !district.value;
+    courierValue.value = '';
+    serviceValue.value = '';
+    service.disabled = true;
+    service.innerHTML = '<option value="">Select courier first</option>';
+});
+
+courier.addEventListener('change', async () => {
+    reset(service, 'Loading services...'); courierValue.value = courier.value; serviceValue.value = '';
+    if(!courier.value || !district.value) return;
+    try {
+        const data = await json('/shipping/costs', {method:'POST', headers:{'Content-Type':'application/json','X-CSRF-TOKEN':@json(csrf_token()),'Accept':'application/json'}, body:JSON.stringify({destination_id:district.value,weight,courier:courier.value})});
+        service.innerHTML = '<option value="">Select service</option>' + data.map(x => `<option value="${x.service}" data-cost="${x.cost}" data-etd="${x.etd || ''}">${x.service} — ${money(x.cost)} (${x.etd || '-'} day)</option>`).join(''); service.disabled=false;
+    } catch(e) { console.error('RajaOngkir costs error:', e); reset(service, 'Failed to load services'); }
+});
+
+service.addEventListener('change', () => {
+    const option = service.options[service.selectedIndex]; const cost = Number(option?.dataset.cost || 0);
+    serviceValue.value = service.value; shippingPrice.textContent = money(cost); grandTotal.textContent = money(baseTotal + cost);
+});
+
+document.querySelectorAll('input[name="payment_method"]').forEach(r => r.addEventListener('change', () => document.getElementById('manualProof').classList.toggle('d-none', document.getElementById('manual').checked === false)));
 </script>
-@endpush
-
-@push('styles')
-<style>
-.sticky-top {
-    position: sticky;
-    top: 20px;
-    z-index: 100;
-}
-.card {
-    border: none;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    transition: all 0.3s;
-}
-.card:hover {
-    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-}
-.form-check-input:checked {
-    background-color: #ff6b6b;
-    border-color: #ff6b6b;
-}
-.btn-primary {
-    background-color: #ff6b6b;
-    border-color: #ff6b6b;
-}
-.btn-primary:hover {
-    background-color: #ff5252;
-    border-color: #ff5252;
-}
-</style>
 @endpush
