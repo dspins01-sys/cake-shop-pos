@@ -23,7 +23,7 @@ services:
         RUN if [ -d "/var/www/html/storage" ]; then chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache; fi
         USER www-data
         EXPOSE 80
-        CMD ["apache2-foreground"]
+        CMD ["sh", "-c", "until php artisan migrate --force; do echo 'Waiting for MySQL or migration readiness...'; sleep 5; done; php artisan optimize:clear; exec apache2-foreground"]
     ports:
       - "8082:80"
     environment:
