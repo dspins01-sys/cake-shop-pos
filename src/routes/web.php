@@ -29,6 +29,7 @@ Route::prefix('shipping')->name('shipping.')->group(function () {
 
 Route::get('/payment/midtrans/{order}', [App\Http\Controllers\PaymentController::class, 'midtrans'])->name('payment.midtrans');
 Route::get('/payment/midtrans/finish/{order}', [App\Http\Controllers\MidtransController::class, 'finish'])->name('payment.midtrans.finish');
+Route::get('/payment/midtrans/status/{order}', [App\Http\Controllers\MidtransController::class, 'status'])->name('midtrans.status');
 Route::post('/payment/midtrans/token/{order}', [App\Http\Controllers\MidtransController::class, 'token'])->name('midtrans.token');
 Route::post('/payment/midtrans/notification', [App\Http\Controllers\MidtransController::class, 'notification'])->name('midtrans.notification');
 
@@ -49,7 +50,7 @@ Route::prefix('admin/orders')->name('admin.orders.')->middleware(['auth', 'admin
     Route::post('/{order}/cancel', [App\Http\Controllers\OrderController::class, 'cancel'])->name('cancel');
     Route::delete('/{order}', [App\Http\Controllers\OrderController::class, 'destroy'])->name('destroy');
     Route::post('/clear-all', [App\Http\Controllers\OrderController::class, 'clearAll'])->name('clear-all');
-    Route::post('/clear-all-with-restore', [App\Http\Controllers\OrderController::class, 'clearAllWithRestore'])->name('clear-all-with-restore');
+    Route::post('/clear-all-with-restore', [App\Http\Controllers\OrderController::class, 'clear-all-with-restore')->name('clear-all-with-restore');
 });
 
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
