@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Models\Product;
 use App\Services\MidtransService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -24,7 +25,10 @@ class MidtransController extends Controller
             $token = $this->midtrans->createSnapToken($order);
             $order->update(['midtrans_token' => $token]);
 
-            return response()->json(['token' => $token, 'client_key' => config('payment.midtrans.client_key')]);
+            return response()->json([
+                'token' => $token,
+                'client_key' => config('payment.midtrans.client_key'),
+            ]);
         } catch (Throwable $e) {
             report($e);
             return response()->json(['message' => 'Unable to create payment session.'], 422);
@@ -38,14 +42,19 @@ class MidtransController extends Controller
             return response()->json(['message' => 'Invalid signature.'], 403);
         }
 
-        $order = Order::where('order_number', $notification['order_id'] ?? '')->first();
+        $order = Order::with('items')->where('order_number', $notification['order_id'] ?? '')->first();
         if (!$order) {
             return response()->json(['message' => 'Order not found.'], 404);
+        }
+
+        if ((int) round($order->total) !== (int) round((float) ($notification['gross_amount'] ?? 0))) {
+            return response()->json(['message' => 'Gross amount mismatch.'], 422);
         }
 
         DB::transaction(function () use ($order, $notification) {
             $paymentStatus = $this->midtrans->mapPaymentStatus($notification);
             $transactionStatus = $notification['transaction_status'] ?? null;
+            $wasAlreadyPaid = $order->payment_status === 'paid';
 
             $updates = [
                 'payment_status' => $paymentStatus,
@@ -58,6 +67,16 @@ class MidtransController extends Controller
                 $updates['paid_at'] = $order->paid_at ?: now();
                 $updates['midtrans_paid_at'] = $order->midtrans_paid_at ?: now();
                 $updates['status'] = 'processing';
+
+                if (!$wasAlreadyPaid) {
+                    foreach ($order->items as $item) {
+                        $product = Product::lockForUpdate()->find($item->product_id);
+                        if (!$product || $product->stock < $item->quantity) {
+                            throw new \RuntimeException("Stock unavailable for product #{$item->product_id}");
+                        }
+                        $product->decrement('stock', $item->quantity);
+                    }
+                }
             } elseif ($paymentStatus === 'failed') {
                 $updates['status'] = 'cancelled';
             }
