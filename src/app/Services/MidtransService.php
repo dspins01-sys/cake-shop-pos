@@ -44,6 +44,8 @@ class MidtransService
             ];
         }
 
+        $finishUrl = rtrim(config('app.url'), '/') . '/payment/midtrans/finish/' . $order->id;
+
         $payload = [
             'transaction_details' => [
                 'order_id' => $order->order_number,
@@ -59,7 +61,7 @@ class MidtransService
                 ],
             ],
             'callbacks' => [
-                'finish' => route('payment.midtrans.finish', $order),
+                'finish' => $finishUrl,
             ],
         ];
 
