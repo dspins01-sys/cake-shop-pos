@@ -74,12 +74,12 @@ class CartController extends Controller
             'payment_method' => 'required|in:manual,midtrans',
             'payment_proof' => 'nullable|required_if:payment_method,manual|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'notes' => 'nullable|string',
-            'shipping_destination_id' => 'nullable|integer',
-            'shipping_province' => 'nullable|string|max:100',
-            'shipping_city' => 'nullable|string|max:100',
-            'shipping_district' => 'nullable|string|max:100',
-            'courier' => 'nullable|string|max:30',
-            'courier_service' => 'nullable|string|max:50',
+            'shipping_destination_id' => 'required|integer',
+            'shipping_province' => 'required|string|max:100',
+            'shipping_city' => 'required|string|max:100',
+            'shipping_district' => 'required|string|max:100',
+            'courier' => 'required|string|max:30',
+            'courier_service' => 'required|string|max:50',
         ]);
 
         $cart = CartHelper::getCart();
@@ -95,24 +95,19 @@ class CartController extends Controller
             }
         }
 
-        $shippingCost = 0;
-        $shippingEtd = null;
-        if (!empty($data['shipping_destination_id']) && !empty($data['courier']) && !empty($data['courier_service'])) {
-            $quote = $rajaOngkir->findQuote(
-                (int) $data['shipping_destination_id'],
-                $weight,
-                $data['courier'],
-                $data['courier_service']
-            );
+        $quote = $rajaOngkir->findQuote(
+            (int) $data['shipping_destination_id'],
+            $weight,
+            $data['courier'],
+            $data['courier_service']
+        );
 
-            if (!$quote) {
-                return back()->with('error', 'Tarif ongkir sudah berubah. Silakan pilih layanan lagi.')->withInput();
-            }
-
-            $shippingCost = (int) ($quote['cost'] ?? 0);
-            $shippingEtd = $quote['etd'] ?? null;
+        if (!$quote) {
+            return back()->with('error', 'Tarif ongkir sudah berubah. Silakan pilih layanan lagi.')->withInput();
         }
 
+        $shippingCost = (int) ($quote['cost'] ?? 0);
+        $shippingEtd = $quote['etd'] ?? null;
         $subtotal = (float) CartHelper::getTotal();
         $tax = round($subtotal * 0.10);
         $grandTotal = (int) round($subtotal + $tax + $shippingCost);
@@ -128,12 +123,12 @@ class CartController extends Controller
                 'total' => $grandTotal,
                 'shipping_cost' => $shippingCost,
                 'shipping_weight' => $weight,
-                'shipping_destination_id' => $data['shipping_destination_id'] ?? null,
-                'shipping_province' => $data['shipping_province'] ?? null,
-                'shipping_city' => $data['shipping_city'] ?? null,
-                'shipping_district' => $data['shipping_district'] ?? null,
-                'courier' => $data['courier'] ?? null,
-                'courier_service' => $data['courier_service'] ?? null,
+                'shipping_destination_id' => $data['shipping_destination_id'],
+                'shipping_province' => $data['shipping_province'],
+                'shipping_city' => $data['shipping_city'],
+                'shipping_district' => $data['shipping_district'],
+                'courier' => $data['courier'],
+                'courier_service' => $data['courier_service'],
                 'shipping_etd' => $shippingEtd,
                 'expired_at' => now()->addHours(24),
                 'status' => 'pending',
