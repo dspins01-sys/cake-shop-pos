@@ -116,7 +116,7 @@ function reset(el, text) { el.innerHTML = `<option value="">${text}</option>`; e
 
 (async () => {
     try {
-        const data = await json(@json(route('shipping.provinces')));
+        const data = await json('/shipping/provinces');
         province.innerHTML = '<option value="">Select province</option>' + data.map(x => `<option value="${x.id}" data-name="${x.name}">${x.name}</option>`).join('');
     } catch(e) { province.innerHTML = '<option value="">RajaOngkir unavailable</option>'; }
 })();
@@ -126,14 +126,14 @@ province.addEventListener('change', async () => {
     const selected = province.options[province.selectedIndex];
     document.getElementById('shipping_province').value = selected?.dataset.name || '';
     if(!province.value) return;
-    try { const data = await json(@json(url('/shipping/cities')) + '/' + province.value); city.innerHTML = '<option value="">Select city</option>' + data.map(x => `<option value="${x.id}" data-name="${x.name}">${x.name}</option>`).join(''); city.disabled=false; } catch(e) { reset(city, 'Failed to load cities'); }
+    try { const data = await json('/shipping/cities/' + province.value); city.innerHTML = '<option value="">Select city</option>' + data.map(x => `<option value="${x.id}" data-name="${x.name}">${x.name}</option>`).join(''); city.disabled=false; } catch(e) { reset(city, 'Failed to load cities'); }
 });
 
 city.addEventListener('change', async () => {
     reset(district, 'Loading...'); reset(courier, 'Select courier'); reset(service, 'Select courier first');
     const selected = city.options[city.selectedIndex]; document.getElementById('shipping_city').value = selected?.dataset.name || '';
     if(!city.value) return;
-    try { const data = await json(@json(url('/shipping/districts')) + '/' + city.value); district.innerHTML = '<option value="">Select district</option>' + data.map(x => `<option value="${x.id}" data-name="${x.name}">${x.name}</option>`).join(''); district.disabled=false; } catch(e) { reset(district, 'Failed to load districts'); }
+    try { const data = await json('/shipping/districts/' + city.value); district.innerHTML = '<option value="">Select district</option>' + data.map(x => `<option value="${x.id}" data-name="${x.name}">${x.name}</option>`).join(''); district.disabled=false; } catch(e) { reset(district, 'Failed to load districts'); }
 });
 
 district.addEventListener('change', () => {
@@ -148,7 +148,7 @@ courier.addEventListener('change', async () => {
     reset(service, 'Loading services...'); courierValue.value = courier.value; serviceValue.value = '';
     if(!courier.value || !district.value) return;
     try {
-        const data = await json(@json(route('shipping.costs')), {method:'POST', headers:{'Content-Type':'application/json','X-CSRF-TOKEN':@json(csrf_token()),'Accept':'application/json'}, body:JSON.stringify({destination_id:district.value,weight,courier:courier.value})});
+        const data = await json('/shipping/costs', {method:'POST', headers:{'Content-Type':'application/json','X-CSRF-TOKEN':@json(csrf_token()),'Accept':'application/json'}, body:JSON.stringify({destination_id:district.value,weight,courier:courier.value})});
         service.innerHTML = '<option value="">Select service</option>' + data.map(x => `<option value="${x.service}" data-cost="${x.cost}" data-etd="${x.etd || ''}">${x.service} — ${money(x.cost)} (${x.etd || '-'} day)</option>`).join(''); service.disabled=false;
     } catch(e) { reset(service, 'Failed to load services'); }
 });
