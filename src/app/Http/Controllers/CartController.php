@@ -60,12 +60,7 @@ class CartController extends Controller
         }
 
         $total = CartHelper::getTotal();
-        $weight = 0;
-        foreach ($cart as $id => $item) {
-            $product = Product::find($id);
-            $weight += max(1, (int) ($product->weight_gram ?? config('payment.rajaongkir.default_weight_gram', 1000))) * $item['quantity'];
-        }
-
+        $weight = $this->cartWeight($cart);
         return view('cart.checkout', compact('cart', 'total', 'weight'));
     }
 
@@ -92,13 +87,12 @@ class CartController extends Controller
             return redirect()->route('cart.index')->with('error', 'Your cart is empty!');
         }
 
-        $weight = 0;
+        $weight = $this->cartWeight($cart);
         foreach ($cart as $id => $item) {
             $product = Product::find($id);
             if (!$product || $product->available_stock < $item['quantity']) {
-                return back()->with('error', "Stok {$item['name']} berubah!')->withInput();
+                return back()->with('error', "Stok {$item['name']} berubah!")->withInput();
             }
-            $weight += max(1, (int) ($product->weight_gram ?? config('payment.rajaongkir.default_weight_gram', 1000))) * $item['quantity'];
         }
 
         $shippingCost = 0;
@@ -123,7 +117,7 @@ class CartController extends Controller
         $tax = round($subtotal * 0.10);
         $grandTotal = (int) round($subtotal + $tax + $shippingCost);
 
-        $order = DB::transaction(function () use ($data, $cart, $subtotal, $grandTotal, $shippingCost, $weight, $shippingEtd) {
+        $order = DB::transaction(function () use ($data, $cart, $grandTotal, $shippingCost, $weight, $shippingEtd) {
             $order = Order::create([
                 'order_number' => Order::generateOrderNumber() . '-' . strtoupper(substr(bin2hex(random_bytes(3)), 0, 6)),
                 'tracking_code' => 'TRK-' . date('Ymd') . '-' . strtoupper(bin2hex(random_bytes(4))),
@@ -173,5 +167,17 @@ class CartController extends Controller
         }
 
         return redirect()->route('order.success', $order)->with('success', 'Order placed successfully!');
+    }
+
+    private function cartWeight(array $cart): int
+    {
+        $weight = 0;
+        foreach ($cart as $id => $item) {
+            $product = Product::find($id);
+            $perItem = max(1, (int) ($product?->weight_gram ?? config('payment.rajaongkir.default_weight_gram', 1000)));
+            $weight += $perItem * (int) $item['quantity'];
+        }
+
+        return max(1, $weight);
     }
 }
