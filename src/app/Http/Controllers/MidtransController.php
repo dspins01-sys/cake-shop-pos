@@ -59,18 +59,20 @@ class MidtransController extends Controller
             $wasAlreadyPaid = $order->payment_status === 'paid';
 
             $updates = [
-                'payment_status' => $paymentStatus,
                 'midtrans_transaction_id' => $notification['transaction_id'] ?? null,
                 'midtrans_payment_type' => $notification['payment_type'] ?? null,
                 'midtrans_status' => $notification['transaction_status'] ?? null,
             ];
 
-            if ($paymentStatus === 'paid') {
-                $updates['paid_at'] = $order->paid_at ?: now();
-                $updates['midtrans_paid_at'] = $order->midtrans_paid_at ?: now();
-                $updates['status'] = 'processing';
+            // Never downgrade an already-settled order because of a late/out-of-order notification.
+            if (!$wasAlreadyPaid) {
+                $updates['payment_status'] = $paymentStatus;
 
-                if (!$wasAlreadyPaid) {
+                if ($paymentStatus === 'paid') {
+                    $updates['paid_at'] = $order->paid_at ?: now();
+                    $updates['midtrans_paid_at'] = $order->midtrans_paid_at ?: now();
+                    $updates['status'] = 'processing';
+
                     foreach ($order->items as $item) {
                         $product = Product::lockForUpdate()->find($item->product_id);
                         if (!$product || $product->stock < $item->quantity) {
@@ -78,9 +80,9 @@ class MidtransController extends Controller
                         }
                         $product->decrement('stock', $item->quantity);
                     }
+                } elseif ($paymentStatus === 'failed') {
+                    $updates['status'] = 'cancelled';
                 }
-            } elseif ($paymentStatus === 'failed') {
-                $updates['status'] = 'cancelled';
             }
 
             $order->update($updates);
