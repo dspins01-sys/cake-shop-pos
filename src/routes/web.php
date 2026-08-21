@@ -49,7 +49,7 @@ Route::prefix('admin/orders')->name('admin.orders.')->middleware(['auth', 'admin
     Route::post('/{order}/process', [App\Http\Controllers\OrderController::class, 'processOrder'])->name('process');
     Route::post('/{order}/complete', [App\Http\Controllers\OrderController::class, 'complete'])->name('complete');
     Route::post('/{order}/cancel', [App\Http\Controllers\OrderController::class, 'cancel'])->name('cancel');
-    Route::delete('/{order}', [App\Http\Controllers\OrderController::class, 'destroy')->name('destroy');
+    Route::delete('/{order}', [App\Http\Controllers\OrderController::class, 'destroy'])->name('destroy');
     Route::post('/clear-all', [App\Http\Controllers\OrderController::class, 'clearAll'])->name('clear-all');
     Route::post('/clear-all-with-restore', [App\Http\Controllers\OrderController::class, 'clearAllWithRestore'])->name('clear-all-with-restore');
 });
