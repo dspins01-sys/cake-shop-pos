@@ -28,6 +28,7 @@ Route::prefix('shipping')->name('shipping.')->group(function () {
 });
 
 Route::get('/payment/midtrans/{order}', [App\Http\Controllers\PaymentController::class, 'midtrans'])->name('payment.midtrans');
+Route::get('/payment/midtrans/finish/{order}', [App\Http\Controllers\MidtransController::class, 'finish'])->name('payment.midtrans.finish');
 Route::post('/payment/midtrans/token/{order}', [App\Http\Controllers\MidtransController::class, 'token'])->name('midtrans.token');
 Route::post('/payment/midtrans/notification', [App\Http\Controllers\MidtransController::class, 'notification'])->name('midtrans.notification');
 
