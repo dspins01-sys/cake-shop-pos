@@ -91,7 +91,6 @@ class MidtransController extends Controller
                     $updates['paid_at'] = $order->paid_at ?: now();
                     $updates['midtrans_paid_at'] = $order->midtrans_paid_at ?: now();
                     $updates['status'] = 'processing';
-                    $sendPaymentWhatsapp = empty($order->wa_payment_notified_at);
 
                     foreach ($order->items as $item) {
                         $product = Product::lockForUpdate()->find($item->product_id);
@@ -105,21 +104,23 @@ class MidtransController extends Controller
                 }
             }
 
-            if ($sendPaymentWhatsapp) {
-                $updates['wa_payment_notified_at'] = now();
+            // A settlement notification may be retried after the DB is already paid.
+            // Still allow the WA notification to be sent if the previous attempt failed.
+            if ($paymentStatus === 'paid' && empty($order->wa_payment_notified_at)) {
+                $sendPaymentWhatsapp = true;
             }
 
             $order->update($updates);
         });
 
-        if ($sendPaymentWhatsapp) {
-            $this->sendPaymentSuccessWhatsapp($order->fresh());
+        if ($sendPaymentWhatsapp && $this->sendPaymentSuccessWhatsapp($order->fresh())) {
+            $order->fresh()->update(['wa_payment_notified_at' => now()]);
         }
 
         return response()->json(['message' => 'OK']);
     }
 
-    private function sendPaymentSuccessWhatsapp(Order $order): void
+    private function sendPaymentSuccessWhatsapp(Order $order): bool
     {
         try {
             $customerMessage = "✅ *PEMBAYARAN BERHASIL*\n\n";
@@ -131,8 +132,9 @@ class MidtransController extends Controller
             $customerMessage .= "Status: *SEDANG DIPROSES*\n\n";
             $customerMessage .= "Pesanan sedang kami siapkan. Terima kasih! 🍰";
 
-            $this->whatsapp->send($order->customer_phone, $customerMessage);
+            $customerSent = $this->whatsapp->send($order->customer_phone, $customerMessage);
 
+            $adminSent = true;
             $adminPhone = env('ADMIN_WHATSAPP');
             if ($adminPhone) {
                 $adminMessage = "💰 *PEMBAYARAN MIDTRANS BERHASIL*\n\n";
@@ -141,15 +143,26 @@ class MidtransController extends Controller
                 $adminMessage .= "Total: Rp " . number_format($order->total, 0, ',', '.') . "\n";
                 $adminMessage .= "Status: *PAID / PROCESSING*\n\n";
                 $adminMessage .= "🔗 " . route('admin.orders.show', $order);
-                $this->whatsapp->send($adminPhone, $adminMessage);
+                $adminSent = $this->whatsapp->send($adminPhone, $adminMessage);
             }
 
-            Log::info('Midtrans payment WA sent', ['order' => $order->id]);
+            if ($customerSent && $adminSent) {
+                Log::info('Midtrans payment WA sent', ['order' => $order->id]);
+                return true;
+            }
+
+            Log::error('Midtrans payment WA partially failed', [
+                'order' => $order->id,
+                'customer_sent' => $customerSent,
+                'admin_sent' => $adminSent,
+            ]);
+            return false;
         } catch (Throwable $e) {
             Log::error('Midtrans payment WA failed', [
                 'order' => $order->id,
                 'error' => $e->getMessage(),
             ]);
+            return false;
         }
     }
 }
