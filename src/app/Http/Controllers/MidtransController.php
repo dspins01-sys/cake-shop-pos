@@ -25,14 +25,17 @@ class MidtransController extends Controller
             $token = $this->midtrans->createSnapToken($order);
             $order->update(['midtrans_token' => $token]);
 
-            return response()->json([
-                'token' => $token,
-                'client_key' => config('payment.midtrans.client_key'),
-            ]);
+            return response()->json(['token' => $token, 'client_key' => config('payment.midtrans.client_key')]);
         } catch (Throwable $e) {
             report($e);
             return response()->json(['message' => 'Unable to create payment session.'], 422);
         }
+    }
+
+    public function finish(Order $order)
+    {
+        abort_unless($order->payment_method === 'midtrans', 404);
+        return view('orders.midtrans-finish', compact('order'));
     }
 
     public function notification(Request $request): JsonResponse
@@ -53,14 +56,13 @@ class MidtransController extends Controller
 
         DB::transaction(function () use ($order, $notification) {
             $paymentStatus = $this->midtrans->mapPaymentStatus($notification);
-            $transactionStatus = $notification['transaction_status'] ?? null;
             $wasAlreadyPaid = $order->payment_status === 'paid';
 
             $updates = [
                 'payment_status' => $paymentStatus,
                 'midtrans_transaction_id' => $notification['transaction_id'] ?? null,
                 'midtrans_payment_type' => $notification['payment_type'] ?? null,
-                'midtrans_status' => $transactionStatus,
+                'midtrans_status' => $notification['transaction_status'] ?? null,
             ];
 
             if ($paymentStatus === 'paid') {
