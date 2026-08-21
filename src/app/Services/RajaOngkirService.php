@@ -57,6 +57,17 @@ class RajaOngkirService
         return $response->json('data') ?? [];
     }
 
+    public function findQuote(int $destinationId, int $weightGram, string $courier, string $service): ?array
+    {
+        foreach ($this->costs($destinationId, $weightGram, $courier) as $quote) {
+            if (($quote['service'] ?? '') === $service) {
+                return $quote;
+            }
+        }
+
+        return null;
+    }
+
     private function get(string $path): array
     {
         $response = $this->client()->get($path);
