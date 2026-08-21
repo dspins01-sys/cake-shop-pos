@@ -5,12 +5,15 @@ namespace App\Http\Controllers;
 use App\Helpers\CartHelper;
 use App\Models\Order;
 use App\Models\Product;
+use App\Services\NodeWhatsAppService;
 use App\Services\RajaOngkirService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class CartController extends Controller
 {
+    public function __construct(private NodeWhatsAppService $whatsapp) {}
+
     public function index()
     {
         $cart = CartHelper::getCart();
@@ -158,6 +161,35 @@ class CartController extends Controller
         CartHelper::clearCart();
 
         if ($order->payment_method === 'midtrans') {
+            // Midtrans orders previously skipped checkoutSuccess(), so explicitly
+            // restore the "order received / awaiting payment" WA notification here.
+            try {
+                $customerMessage = "🍰 *CremenCrumb Bakery*\n\n";
+                $customerMessage .= "Halo *{$order->customer_name}*,\n";
+                $customerMessage .= "Terima kasih telah order di CremenCrumb!\n\n";
+                $customerMessage .= "📋 *DETAIL PESANAN*\n";
+                $customerMessage .= "No. Order: {$order->order_number}\n";
+                $customerMessage .= "Total: Rp " . number_format($order->total, 0, ',', '.') . "\n";
+                $customerMessage .= "Status: *MENUNGGU PEMBAYARAN*\n\n";
+                $customerMessage .= "💳 Silakan selesaikan pembayaran melalui Midtrans.\n";
+                $customerMessage .= "🔗 " . route('payment.midtrans', $order) . "\n\n";
+                $customerMessage .= "Terima kasih! 🙏";
+                $this->whatsapp->send($order->customer_phone, $customerMessage);
+
+                $adminPhone = env('ADMIN_WHATSAPP');
+                if ($adminPhone) {
+                    $adminMessage = "🆕 *ORDER BARU - MENUNGGU MIDTRANS*\n\n";
+                    $adminMessage .= "No. Order: {$order->order_number}\n";
+                    $adminMessage .= "Customer: {$order->customer_name}\n";
+                    $adminMessage .= "Total: Rp " . number_format($order->total, 0, ',', '.') . "\n";
+                    $adminMessage .= "Status: *MENUNGGU PEMBAYARAN*\n\n";
+                    $adminMessage .= "🔗 " . route('admin.orders.show', $order);
+                    $this->whatsapp->send($adminPhone, $adminMessage);
+                }
+            } catch (\Throwable $e) {
+                report($e);
+            }
+
             return redirect()->route('payment.midtrans', $order);
         }
 
