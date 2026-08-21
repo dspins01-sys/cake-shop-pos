@@ -45,6 +45,7 @@ class MidtransService
         }
 
         $finishUrl = rtrim(config('app.url'), '/') . '/payment/midtrans/finish/' . $order->id;
+        $notificationUrl = rtrim(config('app.url'), '/') . '/payment/midtrans/notification';
 
         $payload = [
             'transaction_details' => [
@@ -65,7 +66,13 @@ class MidtransService
             ],
         ];
 
+        // This app shares the same Midtrans Sandbox merchant as another app
+        // (Racik). Override the dashboard notification URL for CakeShop
+        // transactions only, so Racik's webhook remains untouched.
         $response = Http::withBasicAuth($serverKey, '')
+            ->withHeaders([
+                'X-Override-Notification' => $notificationUrl,
+            ])
             ->acceptJson()
             ->post(config('payment.midtrans.snap_url'), $payload);
 
