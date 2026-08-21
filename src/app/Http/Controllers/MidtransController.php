@@ -63,13 +63,72 @@ class MidtransController extends Controller
             return response()->json(['message' => 'Invalid signature.'], 403);
         }
 
+        try {
+            $this->applyNotification($notification);
+            return response()->json(['message' => 'OK']);
+        } catch (Throwable $e) {
+            report($e);
+            return response()->json(['message' => 'Notification processing failed.'], 500);
+        }
+    }
+
+    /**
+     * Sandbox-only payment simulation.
+     * Uses the exact same business logic as a real Midtrans settlement notification,
+     * including stock decrement, order status changes and WhatsApp notifications.
+     */
+    public function simulatePaid(Order $order): JsonResponse
+    {
+        abort_if((bool) config('payment.midtrans.production'), 404);
+        abort_unless($order->payment_method === 'midtrans', 404);
+
+        if ($order->payment_status === 'paid') {
+            return response()->json([
+                'message' => 'Order is already paid.',
+                'payment_status' => 'paid',
+                'midtrans_status' => $order->midtrans_status,
+            ]);
+        }
+
+        $notification = [
+            'order_id' => $order->order_number,
+            'transaction_id' => $order->midtrans_transaction_id ?: 'SIM-' . strtoupper(bin2hex(random_bytes(8))),
+            'payment_type' => 'qris',
+            'transaction_status' => 'settlement',
+            'fraud_status' => 'accept',
+            'gross_amount' => number_format((float) $order->total, 2, '.', ''),
+        ];
+
+        try {
+            $this->applyNotification($notification);
+
+            $fresh = $order->fresh();
+            return response()->json([
+                'message' => 'Sandbox payment simulated successfully.',
+                'order_id' => $fresh->order_number,
+                'payment_status' => $fresh->payment_status,
+                'status' => $fresh->status,
+                'midtrans_status' => $fresh->midtrans_status,
+            ]);
+        } catch (Throwable $e) {
+            Log::error('Midtrans sandbox simulation failed', [
+                'order' => $order->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json(['message' => 'Sandbox payment simulation failed.'], 422);
+        }
+    }
+
+    private function applyNotification(array $notification): void
+    {
         $order = Order::with('items')->where('order_number', $notification['order_id'] ?? '')->first();
         if (!$order) {
-            return response()->json(['message' => 'Order not found.'], 404);
+            throw new \RuntimeException('Order not found.');
         }
 
         if ((int) round($order->total) !== (int) round((float) ($notification['gross_amount'] ?? 0))) {
-            return response()->json(['message' => 'Gross amount mismatch.'], 422);
+            throw new \RuntimeException('Gross amount mismatch.');
         }
 
         $sendPaymentWhatsapp = false;
@@ -116,8 +175,6 @@ class MidtransController extends Controller
         if ($sendPaymentWhatsapp && $this->sendPaymentSuccessWhatsapp($order->fresh())) {
             $order->fresh()->update(['wa_payment_notified_at' => now()]);
         }
-
-        return response()->json(['message' => 'OK']);
     }
 
     private function sendPaymentSuccessWhatsapp(Order $order): bool
