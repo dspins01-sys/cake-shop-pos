@@ -25,31 +25,61 @@ document.addEventListener('DOMContentLoaded', async () => {
     const button = document.getElementById('pay-button');
     const error = document.getElementById('payment-error');
     let token = @json($order->midtrans_token);
-    const finishUrl = @json(route('payment.midtrans.finish', $order));
+
+    // Use relative URLs so Cloudflare/reverse-proxy scheme detection cannot turn
+    // the request into HTTP and cause browser Mixed Content / Failed to fetch.
+    const tokenUrl = @json('/payment/midtrans/token/' . $order->id);
+    const finishUrl = @json('/payment/midtrans/finish/' . $order->id);
+
+    const showError = (message) => {
+        button.disabled = true;
+        error.textContent = message;
+        error.classList.remove('d-none');
+    };
 
     try {
         if (!token) {
-            const response = await fetch(@json(route('midtrans.token', $order)), {
+            const response = await fetch(tokenUrl, {
                 method: 'POST',
-                headers: {'X-CSRF-TOKEN': @json(csrf_token()), 'Accept': 'application/json'}
+                credentials: 'same-origin',
+                headers: {
+                    'X-CSRF-TOKEN': @json(csrf_token()),
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})
             });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.message || 'Gagal membuat sesi pembayaran.');
+
+            const raw = await response.text();
+            let data = {};
+            try { data = raw ? JSON.parse(raw) : {}; } catch (_) {}
+
+            if (!response.ok) {
+                throw new Error(data.message || `Payment session failed (HTTP ${response.status}).`);
+            }
+
+            if (!data.token) {
+                throw new Error('Midtrans tidak mengembalikan payment token.');
+            }
+
             token = data.token;
+        }
+
+        if (typeof window.snap === 'undefined') {
+            throw new Error('Midtrans Snap gagal dimuat. Cek koneksi atau Client Key Sandbox.');
         }
 
         button.addEventListener('click', () => {
             window.snap.pay(token, {
                 onSuccess: () => window.location.href = finishUrl,
                 onPending: () => window.location.href = finishUrl,
-                onError: () => { error.textContent = 'Pembayaran gagal. Silakan coba lagi.'; error.classList.remove('d-none'); },
+                onError: () => showError('Pembayaran gagal. Silakan coba lagi.'),
                 onClose: () => {}
             });
         });
     } catch (e) {
-        button.disabled = true;
-        error.textContent = e.message;
-        error.classList.remove('d-none');
+        showError(e.message || 'Gagal membuat sesi pembayaran.');
+        console.error('Midtrans initialization error:', e);
     }
 });
 </script>
