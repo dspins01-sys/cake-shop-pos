@@ -2,208 +2,176 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
 use App\Helpers\CartHelper;
-use Illuminate\Http\Request;
 use App\Models\Order;
+use App\Models\Product;
+use App\Services\RajaOngkirService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CartController extends Controller
 {
-    /**
-     * Display cart page
-     */
     public function index()
     {
         $cart = CartHelper::getCart();
         $total = CartHelper::getTotal();
-        
         return view('cart.index', compact('cart', 'total'));
     }
 
-    /**
-     * Add item to cart
-     */
-   // Di CartController@add
-public function add(Request $request, Product $product)
-{
-    $availableStock = $product->available_stock;
-    
-    $request->validate([
-        'quantity' => 'required|integer|min:1|max:' . $availableStock
-    ]);
+    public function add(Request $request, Product $product)
+    {
+        $availableStock = $product->available_stock;
+        $request->validate(['quantity' => 'required|integer|min:1|max:' . $availableStock]);
+        CartHelper::addToCart($product, $request->quantity);
+        return redirect()->back()->with('success', 'Product added to cart!');
+    }
 
-    CartHelper::addToCart($product, $request->quantity);
-
-    return redirect()->back()->with('success', 'Product added to cart!');
-}
-
-    /**
-     * Update cart item
-     */
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'quantity' => 'required|integer|min:0'
-        ]);
-
+        $request->validate(['quantity' => 'required|integer|min:0']);
         CartHelper::updateCart($id, $request->quantity);
-
         return redirect()->route('cart.index')->with('success', 'Cart updated!');
     }
 
-    /**
-     * Remove item from cart
-     */
     public function remove($id)
     {
         CartHelper::removeFromCart($id);
-        
         return redirect()->route('cart.index')->with('success', 'Item removed from cart!');
     }
 
-    /**
-     * Clear cart
-     */
     public function clear()
     {
         CartHelper::clearCart();
-        
         return redirect()->route('cart.index')->with('success', 'Cart cleared!');
     }
 
-    /**
-     * Show checkout page
-     */
-    /**
- * Show checkout page
- */
-/**
- * Show checkout page
- */
-public function checkout()
-{
-    $cart = CartHelper::getCart();
-    
-    if (empty($cart)) {
-        return redirect()->route('cart.index')->with('error', 'Your cart is empty!');
-    }
-    
-    // VALIDASI STOK REAL-TIME
-    $stockIssues = [];
-    foreach ($cart as $id => $item) {
-        $product = Product::find($id);
-        $availableStock = $product->available_stock ?? 0;
-        
-        if ($availableStock < $item['quantity']) {
-        $stockIssues[] = [
-            'id' => $id,  // <-- PASTIKAN ID ADA!
-            'name' => $item['name'],
-            'requested' => $item['quantity'],
-            'available' => $availableStock,
-            'max' => $availableStock
-        ];
-}
-    }
-    
-    if (!empty($stockIssues)) {
-        $message = 'Stok beberapa produk berubah:';
-        foreach ($stockIssues as $issue) {
-            $message .= " • {$issue['name']}: kamu minta {$issue['requested']}, tersisa {$issue['available']}";
+    public function checkout()
+    {
+        $cart = CartHelper::getCart();
+        if (empty($cart)) {
+            return redirect()->route('cart.index')->with('error', 'Your cart is empty!');
         }
-        
-        return redirect()->route('cart.index')
-            ->with('warning', $message)
-            ->with('stock_issues', $stockIssues);
-    }
-    
-    $total = CartHelper::getTotal();
-    return view('cart.checkout', compact('cart', 'total'));
-}
-    /**
- * Process checkout and create order
- */
-public function process(Request $request)
-{
-    // Validasi input
-    $request->validate([
-        'customer_name' => 'required|string|max:255',
-        'customer_email' => 'required|email|max:255',
-        'customer_phone' => 'required|string|max:20',
-        'address' => 'required|string',
-        'payment_method' => 'required|in:manual',
-        'payment_proof' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-        'notes' => 'nullable|string'
-    ]);
 
-    // Ambil cart dari session
-     $cart = CartHelper::getCart();
-    
-    // VALIDASI STOK FINAL SEBELUM BUAT ORDER
-    // Di method process, ganti validasi stok dengan:
-foreach ($cart as $id => $item) {
-    $product = Product::find($id);
-    $availableStock = $product->available_stock ?? 0;
-    
-    if ($availableStock < $item['quantity']) {
-        return back()->with('error', 
-            "Stok {$item['name']} berubah! Tersedia: {$availableStock}"
-        )->withInput();
-    }
-}
-    
-    if (empty($cart)) {
-        return redirect()->route('cart.index')
-            ->with('error', 'Your cart is empty!');
+        foreach ($cart as $id => $item) {
+            $product = Product::find($id);
+            if (($product->available_stock ?? 0) < $item['quantity']) {
+                return redirect()->route('cart.index')->with('error', "Stok {$item['name']} berubah!");
+            }
+        }
+
+        $total = CartHelper::getTotal();
+        $weight = 0;
+        foreach ($cart as $id => $item) {
+            $product = Product::find($id);
+            $weight += max(1, (int) ($product->weight_gram ?? config('payment.rajaongkir.default_weight_gram', 1000))) * $item['quantity'];
+        }
+
+        return view('cart.checkout', compact('cart', 'total', 'weight'));
     }
 
-    // Hitung total
-    $total = CartHelper::getTotal();
-
-   // Buat order number unik
-$orderNumber = 'INV-' . date('Ymd') . '-' . strtoupper(uniqid());
-
-// Buat tracking code UNIK (WAJIB ADA!)
-$trackingCode = 'TRK-' . date('Ymd') . '-' . strtoupper(uniqid());
-
-// Simpan ke database
-$order = \App\Models\Order::create([
-    'order_number' => $orderNumber,
-    'tracking_code' => $trackingCode, // <-- INI WAJIB ADA!
-    'customer_name' => $request->customer_name,
-    'customer_email' => $request->customer_email,
-    'customer_phone' => $request->customer_phone,
-    'address' => $request->address,
-    'total' => $total,
-    'expired_at' => now()->addHours(24), // Batas waktu 24 jam,
-    'status' => 'pending',
-    'payment_method' => $request->payment_method,
-    'payment_status' => 'unpaid',
-    'notes' => $request->notes,
-]);
-
-    // Simpan order items
-    foreach ($cart as $id => $item) {
-        $order->items()->create([
-            'product_id' => $id,
-            'product_name' => $item['name'],
-            'product_price' => $item['price'],
-            'quantity' => $item['quantity'],
-            'subtotal' => $item['price'] * $item['quantity'],
+    public function process(Request $request, RajaOngkirService $rajaOngkir)
+    {
+        $data = $request->validate([
+            'customer_name' => 'required|string|max:255',
+            'customer_email' => 'required|email|max:255',
+            'customer_phone' => 'required|string|max:20',
+            'address' => 'required|string',
+            'payment_method' => 'required|in:manual,midtrans',
+            'payment_proof' => 'nullable|required_if:payment_method,manual|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'notes' => 'nullable|string',
+            'shipping_destination_id' => 'nullable|integer',
+            'shipping_province' => 'nullable|string|max:100',
+            'shipping_city' => 'nullable|string|max:100',
+            'shipping_district' => 'nullable|string|max:100',
+            'courier' => 'nullable|string|max:30',
+            'courier_service' => 'nullable|string|max:50',
         ]);
+
+        $cart = CartHelper::getCart();
+        if (empty($cart)) {
+            return redirect()->route('cart.index')->with('error', 'Your cart is empty!');
+        }
+
+        $weight = 0;
+        foreach ($cart as $id => $item) {
+            $product = Product::find($id);
+            if (!$product || $product->available_stock < $item['quantity']) {
+                return back()->with('error', "Stok {$item['name']} berubah!')->withInput();
+            }
+            $weight += max(1, (int) ($product->weight_gram ?? config('payment.rajaongkir.default_weight_gram', 1000))) * $item['quantity'];
+        }
+
+        $shippingCost = 0;
+        $shippingEtd = null;
+        if (!empty($data['shipping_destination_id']) && !empty($data['courier']) && !empty($data['courier_service'])) {
+            $quote = $rajaOngkir->findQuote(
+                (int) $data['shipping_destination_id'],
+                $weight,
+                $data['courier'],
+                $data['courier_service']
+            );
+
+            if (!$quote) {
+                return back()->with('error', 'Tarif ongkir sudah berubah. Silakan pilih layanan lagi.')->withInput();
+            }
+
+            $shippingCost = (int) ($quote['cost'] ?? 0);
+            $shippingEtd = $quote['etd'] ?? null;
+        }
+
+        $subtotal = (float) CartHelper::getTotal();
+        $tax = round($subtotal * 0.10);
+        $grandTotal = (int) round($subtotal + $tax + $shippingCost);
+
+        $order = DB::transaction(function () use ($data, $cart, $subtotal, $grandTotal, $shippingCost, $weight, $shippingEtd) {
+            $order = Order::create([
+                'order_number' => Order::generateOrderNumber() . '-' . strtoupper(substr(bin2hex(random_bytes(3)), 0, 6)),
+                'tracking_code' => 'TRK-' . date('Ymd') . '-' . strtoupper(bin2hex(random_bytes(4))),
+                'customer_name' => $data['customer_name'],
+                'customer_email' => $data['customer_email'],
+                'customer_phone' => $data['customer_phone'],
+                'address' => $data['address'],
+                'total' => $grandTotal,
+                'shipping_cost' => $shippingCost,
+                'shipping_weight' => $weight,
+                'shipping_destination_id' => $data['shipping_destination_id'] ?? null,
+                'shipping_province' => $data['shipping_province'] ?? null,
+                'shipping_city' => $data['shipping_city'] ?? null,
+                'shipping_district' => $data['shipping_district'] ?? null,
+                'courier' => $data['courier'] ?? null,
+                'courier_service' => $data['courier_service'] ?? null,
+                'shipping_etd' => $shippingEtd,
+                'expired_at' => now()->addHours(24),
+                'status' => 'pending',
+                'payment_method' => $data['payment_method'],
+                'payment_status' => 'unpaid',
+                'notes' => $data['notes'] ?? null,
+            ]);
+
+            foreach ($cart as $id => $item) {
+                $order->items()->create([
+                    'product_id' => $id,
+                    'product_name' => $item['name'],
+                    'product_price' => $item['price'],
+                    'quantity' => $item['quantity'],
+                    'subtotal' => $item['price'] * $item['quantity'],
+                ]);
+            }
+
+            if (!empty($data['payment_proof'])) {
+                $path = request()->file('payment_proof')->store('payment-proofs', 'public');
+                $order->update(['payment_proof' => $path]);
+            }
+
+            return $order;
+        });
+
+        CartHelper::clearCart();
+
+        if ($order->payment_method === 'midtrans') {
+            return redirect()->route('payment.midtrans', $order);
+        }
+
+        return redirect()->route('order.success', $order)->with('success', 'Order placed successfully!');
     }
-
-    // Upload bukti transfer kalo ada
-    if ($request->hasFile('payment_proof')) {
-        $path = $request->file('payment_proof')->store('payment-proofs', 'public');
-        $order->update(['payment_proof' => $path]);
-    }
-
-    // Hapus cart dari session
-    CartHelper::clearCart();
-
-    // Redirect ke halaman sukses (bikin dulu nanti)
-    return redirect()->route('order.success', $order)
-        ->with('success', 'Order placed successfully! Check your email for confirmation.');
-}
-
 }
